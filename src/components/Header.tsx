@@ -14,9 +14,14 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link to="/">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300">
-                Rwanda Fashion Hub
+            <Link to="/" className="flex items-center">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 mr-3 animate-pulse-soft">
+                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 10.87V12h2v15.87c5.16-1.13 9-5.32 9-10.87V7L12 2z"/>
+                </svg>
+              </div>
+              <h1 className="text-2xl font-black bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300">
+                RwandaStyle
               </h1>
             </Link>
           </div>
