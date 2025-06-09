@@ -20,7 +20,16 @@ export const subscribe = async (req, res) => {
         // Reactivate subscription
         existingSubscriber.isActive = true;
         await existingSubscriber.save();
-        return sendResponse(res, 200, true, { message: 'Subscription reactivated successfully!' });
+        
+        // Log notification for admin email
+        console.log(`Newsletter subscription notification:`);
+        console.log(`- Admin email: getwayconnection@gmail.com`);
+        console.log(`- Subscriber reactivated: ${email}`);
+        console.log(`- Date: ${new Date().toISOString()}`);
+        
+        return sendResponse(res, 200, true, { 
+          message: 'Welcome back! Your subscription has been reactivated successfully!' 
+        });
       }
     }
 
@@ -28,8 +37,15 @@ export const subscribe = async (req, res) => {
     const subscriber = new Subscriber({ email });
     await subscriber.save();
 
+    // Log notification for admin email
+    console.log(`Newsletter subscription notification:`);
+    console.log(`- Admin email: getwayconnection@gmail.com`);
+    console.log(`- New subscriber: ${email}`);
+    console.log(`- Date: ${new Date().toISOString()}`);
+    console.log(`- Total subscribers: ${await Subscriber.countDocuments({ isActive: true })}`);
+
     sendResponse(res, 201, true, { 
-      message: 'Successfully subscribed to our newsletter!',
+      message: 'Successfully subscribed to our newsletter! Welcome to RwandaStyle!',
       subscriber: { email: subscriber.email, subscribedAt: subscriber.subscribedAt }
     });
   } catch (error) {
@@ -50,6 +66,12 @@ export const unsubscribe = async (req, res) => {
     subscriber.isActive = false;
     await subscriber.save();
 
+    // Log notification for admin email
+    console.log(`Newsletter unsubscription notification:`);
+    console.log(`- Admin email: getwayconnection@gmail.com`);
+    console.log(`- Unsubscribed: ${email}`);
+    console.log(`- Date: ${new Date().toISOString()}`);
+
     sendResponse(res, 200, true, { message: 'Successfully unsubscribed from newsletter' });
   } catch (error) {
     console.error('Unsubscribe error:', error);
@@ -60,7 +82,11 @@ export const unsubscribe = async (req, res) => {
 export const getAllSubscribers = async (req, res) => {
   try {
     const subscribers = await Subscriber.find({ isActive: true }).select('email subscribedAt');
-    sendResponse(res, 200, true, subscribers);
+    sendResponse(res, 200, true, { 
+      subscribers,
+      total: subscribers.length,
+      adminEmail: 'getwayconnection@gmail.com'
+    });
   } catch (error) {
     console.error('Get subscribers error:', error);
     sendResponse(res, 500, false, error.message);

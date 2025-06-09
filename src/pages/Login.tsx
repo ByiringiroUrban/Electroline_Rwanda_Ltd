@@ -1,96 +1,124 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import Header from "@/components/Header";
+import { Eye, EyeOff, ShoppingBag } from "lucide-react";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
   const navigate = useNavigate();
+  const { login } = useAuth();
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setLoading(true);
 
     try {
-      await login(email, password);
+      await login(formData.email, formData.password);
       toast.success("Login successful!");
       navigate("/");
     } catch (error: any) {
-      toast.error(error.message || "Login failed. Please try again.");
+      toast.error(error.message || "Login failed");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50">
-      <Header />
-      
-      <div className="flex items-center justify-center px-4 py-12">
-        <Card className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-purple-50 flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <Link to="/" className="inline-flex items-center space-x-2 mb-6">
+            <div className="w-8 h-8 bg-gradient-to-r from-violet-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <ShoppingBag className="h-5 w-5 text-white" />
+            </div>
+            <span className="text-xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+              RwandaStyle
+            </span>
+          </Link>
+        </div>
+
+        <Card className="shadow-2xl border-0 animate-fade-in">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+              Welcome Back
+            </CardTitle>
             <CardDescription>
-              Sign in to your RwandaStyle account
+              Sign in to your account to continue shopping
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <form onSubmit={handleLogin} className="space-y-4">
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="email"
                   type="email"
-                  placeholder="your.email@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  name="email"
+                  placeholder="Email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="h-12"
                   required
-                  disabled={isLoading}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+              
+              <div className="space-y-2 relative">
                 <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="h-12 pr-10"
                   required
-                  disabled={isLoading}
                 />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label className="flex items-center space-x-2 text-sm">
-                  <input type="checkbox" className="rounded border-gray-300" />
-                  <span>Remember me</span>
-                </Label>
-                <Link 
-                  to="/forgot-password" 
-                  className="text-sm text-orange-600 hover:text-orange-700"
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-12 px-3 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
                 >
-                  Forgot password?
-                </Link>
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400" />
+                  )}
+                </Button>
               </div>
+
+              <div className="flex items-center justify-between">
+                <div className="text-sm">
+                  <Link 
+                    to="/forgot-password" 
+                    className="text-violet-600 hover:text-violet-700 font-medium transition-colors"
+                  >
+                    Forgot your password?
+                  </Link>
+                </div>
+              </div>
+              
               <Button 
                 type="submit" 
-                className="w-full bg-gradient-to-r from-orange-600 to-blue-600 hover:from-orange-700 hover:to-blue-700"
-                disabled={isLoading}
+                className="w-full h-12 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
+                disabled={loading}
               >
-                {isLoading ? (
+                {loading ? (
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-                    Signing In...
+                    Signing in...
                   </div>
                 ) : (
                   "Sign In"
@@ -98,14 +126,12 @@ const Login = () => {
               </Button>
             </form>
             
-            <Separator />
-            
-            <div className="text-center">
+            <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
                 Don't have an account?{" "}
                 <Link 
                   to="/signup" 
-                  className="text-orange-600 hover:text-orange-700 font-medium"
+                  className="text-violet-600 hover:text-violet-700 font-medium transition-colors"
                 >
                   Sign up
                 </Link>

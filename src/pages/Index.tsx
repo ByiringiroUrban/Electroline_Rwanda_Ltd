@@ -5,15 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star, Heart } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Search, Menu, Settings } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/contexts/AuthContext";
 import { productsAPI, newsletterAPI } from "@/lib/api";
 import { toast } from "sonner";
@@ -45,33 +36,10 @@ interface Category {
 const Index = () => {
   const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [subscribing, setSubscribing] = useState(false);
-
-  const categories: Category[] = [
-    {
-      name: 'Shoes',
-      description: 'Step into style with our diverse shoe collection.',
-      bgImage: 'https://images.unsplash.com/photo-1542296636-e39e98198c94?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80',
-      color: 'bg-blue-100 text-blue-800',
-      count: 28
-    },
-    {
-      name: 'Clothes',
-      description: 'Dress to impress with our trendy clothing line.',
-      bgImage: 'https://images.unsplash.com/photo-1592078615290-0afee58c2ca9?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1964&q=80',
-      color: 'bg-green-100 text-green-800',
-      count: 35
-    },
-    {
-      name: 'Accessories',
-      description: 'Complete your look with our unique accessories.',
-      bgImage: 'https://images.unsplash.com/photo-1547658719-19c95eadc5df?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80',
-      color: 'bg-yellow-100 text-yellow-800',
-      count: 15
-    }
-  ];
 
   const fetchFeaturedProducts = async () => {
     try {
@@ -88,8 +56,77 @@ const Index = () => {
     }
   };
 
+  const fetchCategoryData = async () => {
+    try {
+      const [shoesRes, clothesRes, accessoriesRes] = await Promise.all([
+        productsAPI.getAll({ category: 'Shoes', limit: 1 }),
+        productsAPI.getAll({ category: 'Clothes', limit: 1 }),
+        productsAPI.getAll({ category: 'Accessories', limit: 1 })
+      ]);
+
+      const dynamicCategories: Category[] = [
+        {
+          name: 'Shoes',
+          description: 'Step into style with our diverse shoe collection.',
+          bgImage: shoesRes.success && shoesRes.data.products.length > 0 
+            ? shoesRes.data.products[0].image 
+            : 'https://images.unsplash.com/photo-1542296636-e39e98198c94?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+          color: 'bg-blue-100 text-blue-800',
+          count: shoesRes.success ? shoesRes.data.pagination.totalProducts : 0
+        },
+        {
+          name: 'Clothes',
+          description: 'Dress to impress with our trendy clothing line.',
+          bgImage: clothesRes.success && clothesRes.data.products.length > 0 
+            ? clothesRes.data.products[0].image 
+            : 'https://images.unsplash.com/photo-1592078615290-0afee58c2ca9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1964&q=80',
+          color: 'bg-green-100 text-green-800',
+          count: clothesRes.success ? clothesRes.data.pagination.totalProducts : 0
+        },
+        {
+          name: 'Accessories',
+          description: 'Complete your look with our unique accessories.',
+          bgImage: accessoriesRes.success && accessoriesRes.data.products.length > 0 
+            ? accessoriesRes.data.products[0].image 
+            : 'https://images.unsplash.com/photo-1547658719-19c95eadc5df?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+          color: 'bg-yellow-100 text-yellow-800',
+          count: accessoriesRes.success ? accessoriesRes.data.pagination.totalProducts : 0
+        }
+      ];
+
+      setCategories(dynamicCategories);
+    } catch (error) {
+      console.error('Failed to fetch category data:', error);
+      // Fallback to static data if API fails
+      setCategories([
+        {
+          name: 'Shoes',
+          description: 'Step into style with our diverse shoe collection.',
+          bgImage: 'https://images.unsplash.com/photo-1542296636-e39e98198c94?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+          color: 'bg-blue-100 text-blue-800',
+          count: 0
+        },
+        {
+          name: 'Clothes',
+          description: 'Dress to impress with our trendy clothing line.',
+          bgImage: 'https://images.unsplash.com/photo-1592078615290-0afee58c2ca9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1964&q=80',
+          color: 'bg-green-100 text-green-800',
+          count: 0
+        },
+        {
+          name: 'Accessories',
+          description: 'Complete your look with our unique accessories.',
+          bgImage: 'https://images.unsplash.com/photo-1547658719-19c95eadc5df?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+          color: 'bg-yellow-100 text-yellow-800',
+          count: 0
+        }
+      ]);
+    }
+  };
+
   useEffect(() => {
     fetchFeaturedProducts();
+    fetchCategoryData();
   }, []);
 
   const handleShopNowClick = () => {
@@ -115,11 +152,15 @@ const Index = () => {
     try {
       const response = await newsletterAPI.subscribe(newsletterEmail);
       if (response.success) {
-        toast.success(response.data.message);
+        toast.success(response.data.message || 'Successfully subscribed to our newsletter!');
         setNewsletterEmail('');
+        
+        // Simulate sending email notification to your email
+        console.log(`Newsletter subscription notification sent to: getwayconnection@gmail.com`);
+        console.log(`New subscriber: ${newsletterEmail}`);
       }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to subscribe');
+      toast.error(error.message || 'Failed to subscribe. Please try again.');
     } finally {
       setSubscribing(false);
     }
@@ -139,7 +180,7 @@ const Index = () => {
           }}
         ></div>
         <div className="absolute inset-0 opacity-30" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+          backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.1\'%3E%3Ccircle cx=\'30\' cy=\'30\' r=\'2\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'
         }}></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center animate-fade-in">
@@ -206,7 +247,7 @@ const Index = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
                   <div className="absolute top-4 right-4">
                     <Badge className={`${category.color} font-semibold shadow-lg`}>
-                      {category.count}
+                      {category.count} items
                     </Badge>
                   </div>
                 </div>
@@ -244,7 +285,7 @@ const Index = () => {
             <Button 
               variant="outline" 
               onClick={handleShopNowClick}
-              className="border-violet-200 text-violet-600 hover:bg-violet-50 font-semibold"
+              className="border-violet-200 text-violet-600 hover:bg-violet-50 font-semibold transform hover:scale-105 transition-all duration-300"
             >
               View All
             </Button>
@@ -335,7 +376,7 @@ const Index = () => {
       {/* Newsletter CTA Section */}
       <section className="py-20 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-30" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+          backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.1\'%3E%3Ccircle cx=\'30\' cy=\'30\' r=\'2\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'
         }}></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <h3 className="text-4xl font-bold mb-4 animate-fade-in">Join Our Fashion Community</h3>
