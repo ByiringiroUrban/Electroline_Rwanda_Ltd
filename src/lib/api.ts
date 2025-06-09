@@ -105,6 +105,92 @@ export const productsAPI = {
   },
 };
 
+// Cart API
+export const cartAPI = {
+  add: async (productId: string, quantity: number = 1) => {
+    return apiRequest('/cart/add', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+      body: JSON.stringify({ productId, quantity }),
+    });
+  },
+  
+  get: async () => {
+    return apiRequest('/cart', {
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+    });
+  },
+  
+  update: async (productId: string, quantity: number) => {
+    return apiRequest('/cart/update', {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+      body: JSON.stringify({ productId, quantity }),
+    });
+  },
+  
+  remove: async (productId: string) => {
+    return apiRequest(`/cart/${productId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+    });
+  },
+};
+
+// Favorites API
+export const favoritesAPI = {
+  add: async (productId: string) => {
+    return apiRequest('/favorites/add', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+      body: JSON.stringify({ productId }),
+    });
+  },
+  
+  remove: async (productId: string) => {
+    return apiRequest(`/favorites/${productId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+    });
+  },
+  
+  get: async () => {
+    return apiRequest('/favorites', {
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+    });
+  },
+};
+
+// Notifications API
+export const notificationsAPI = {
+  create: async (notificationData: { title: string; message: string; type?: string }) => {
+    return apiRequest('/notifications', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+      body: JSON.stringify(notificationData),
+    });
+  },
+  
+  getAll: async () => {
+    return apiRequest('/notifications');
+  },
+  
+  update: async (id: string, notificationData: any) => {
+    return apiRequest(`/notifications/${id}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+      body: JSON.stringify(notificationData),
+    });
+  },
+  
+  delete: async (id: string) => {
+    return apiRequest(`/notifications/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+    });
+  },
+};
+
 // Orders API
 export const ordersAPI = {
   create: async (orderData: any) => {

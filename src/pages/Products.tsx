@@ -7,8 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Star, Heart, ShoppingCart, Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import Header from "@/components/Header";
-import { productsAPI } from "@/lib/api";
+import HeaderWithFeatures from "@/components/HeaderWithFeatures";
+import ProductModal from "@/components/ProductModal";
+import NotificationBanner from "@/components/NotificationBanner";
+import { productsAPI, favoritesAPI } from "@/lib/api";
+import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 interface Product {
@@ -37,6 +41,12 @@ const Products = () => {
   const [sortBy, setSortBy] = useState('name');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [favorites, setFavorites] = useState<string[]>([]);
+
+  const { addToCart } = useCart();
+  const { user } = useAuth();
 
   const fetchProducts = async () => {
     try {
@@ -62,14 +72,62 @@ const Products = () => {
     }
   };
 
+  const fetchFavorites = async () => {
+    if (!user) return;
+    try {
+      const response = await favoritesAPI.get();
+      if (response.success) {
+        setFavorites(response.data.map((fav: any) => fav._id));
+      }
+    } catch (error) {
+      console.error('Failed to fetch favorites:', error);
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
   }, [category, searchTerm, currentPage]);
+
+  useEffect(() => {
+    fetchFavorites();
+  }, [user]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setCurrentPage(1);
     fetchProducts();
+  };
+
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product);
+    setShowProductModal(true);
+  };
+
+  const handleToggleFavorite = async (productId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user) {
+      toast.error('Please login to add favorites');
+      return;
+    }
+
+    try {
+      if (favorites.includes(productId)) {
+        await favoritesAPI.remove(productId);
+        setFavorites(prev => prev.filter(id => id !== productId));
+        toast.success('Removed from favorites');
+      } else {
+        await favoritesAPI.add(productId);
+        setFavorites(prev => [...prev, productId]);
+        toast.success('Added to favorites');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update favorites');
+    }
+  };
+
+  const handleAddToCart = async (productId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    await addToCart(productId);
   };
 
   const sortedProducts = [...products].sort((a, b) => {
@@ -87,7 +145,12 @@ const Products = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
-      <Header />
+      <HeaderWithFeatures />
+      
+      {/* Notifications */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <NotificationBanner />
+      </div>
       
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white py-16">
@@ -158,7 +221,11 @@ const Products = () => {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {sortedProducts.map((product) => (
-                  <Card key={product._id} className="group hover:shadow-xl transition-all duration-500 cursor-pointer">
+                  <Card 
+                    key={product._id} 
+                    className="group hover:shadow-xl transition-all duration-500 cursor-pointer"
+                    onClick={() => handleProductClick(product)}
+                  >
                     <CardContent className="p-0">
                       <div className="relative overflow-hidden">
                         <img
@@ -179,9 +246,12 @@ const Products = () => {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="absolute top-2 right-2 bg-white/90 hover:bg-white"
+                          className={`absolute top-2 right-2 bg-white/90 hover:bg-white ${
+                            favorites.includes(product._id) ? 'text-red-500' : 'text-gray-500'
+                          }`}
+                          onClick={(e) => handleToggleFavorite(product._id, e)}
                         >
-                          <Heart className="h-4 w-4" />
+                          <Heart className={`h-4 w-4 ${favorites.includes(product._id) ? 'fill-current' : ''}`} />
                         </Button>
                       </div>
                       <div className="p-4">
@@ -206,7 +276,12 @@ const Products = () => {
                               </span>
                             )}
                           </div>
-                          <Button size="sm" className="bg-violet-600 hover:bg-violet-700">
+                          <Button 
+                            size="sm" 
+                            className="bg-violet-600 hover:bg-violet-700"
+                            onClick={(e) => handleAddToCart(product._id, e)}
+                            disabled={product.countInStock === 0}
+                          >
                             <ShoppingCart className="h-4 w-4 mr-1" />
                             Add
                           </Button>
@@ -243,6 +318,13 @@ const Products = () => {
           )}
         </div>
       </section>
+
+      {/* Product Modal */}
+      <ProductModal
+        product={selectedProduct}
+        isOpen={showProductModal}
+        onClose={() => setShowProductModal(false)}
+      />
     </div>
   );
 };
