@@ -1,12 +1,19 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, ShoppingCart, User, Menu, Heart } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, Heart, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    toast.success("Logged out successfully");
+  };
 
   return (
     <header className="bg-white/95 backdrop-blur-sm shadow-lg sticky top-0 z-50 border-b border-slate-200">
@@ -63,20 +70,38 @@ const Header = () => {
             <Button variant="ghost" size="sm" className="relative hover:bg-violet-50 transition-all duration-300 group">
               <Heart className="h-5 w-5 group-hover:text-violet-600 transition-colors duration-300" />
               <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-gradient-to-r from-violet-500 to-purple-500 animate-pulse">
-                2
+                0
               </Badge>
             </Button>
             <Button variant="ghost" size="sm" className="relative hover:bg-violet-50 transition-all duration-300 group">
               <ShoppingCart className="h-5 w-5 group-hover:text-violet-600 transition-colors duration-300" />
               <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-gradient-to-r from-violet-500 to-purple-500 animate-pulse">
-                3
+                0
               </Badge>
             </Button>
-            <Link to="/login">
-              <Button variant="ghost" size="sm" className="hover:bg-violet-50 transition-all duration-300 group">
-                <User className="h-5 w-5 group-hover:text-violet-600 transition-colors duration-300" />
-              </Button>
-            </Link>
+            
+            {user ? (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-slate-600 hidden md:block">
+                  Welcome, {user.name.split(' ')[0]}
+                </span>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="hover:bg-red-50 transition-all duration-300 group"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="h-5 w-5 group-hover:text-red-600 transition-colors duration-300" />
+                </Button>
+              </div>
+            ) : (
+              <Link to="/login">
+                <Button variant="ghost" size="sm" className="hover:bg-violet-50 transition-all duration-300 group">
+                  <User className="h-5 w-5 group-hover:text-violet-600 transition-colors duration-300" />
+                </Button>
+              </Link>
+            )}
+            
             <Button
               variant="ghost"
               size="sm"
@@ -115,6 +140,21 @@ const Header = () => {
                 </Link>
               </nav>
             </div>
+            {user && (
+              <div className="pt-4 border-t border-slate-200">
+                <p className="text-sm text-slate-600 mb-2">
+                  Welcome, {user.name}
+                </p>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-red-600 hover:bg-red-50"
+                  onClick={handleLogout}
+                >
+                  Sign Out
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -1,5 +1,5 @@
-
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,71 +7,69 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Search, ShoppingCart, User, Menu, Star, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
+import { productsAPI } from "@/lib/api";
+import { toast } from "sonner";
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [imagesLoaded, setImagesLoaded] = useState({});
+  const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
 
-  const handleImageLoad = (id) => {
+  // Fetch featured products from API
+  const { data: featuredProductsData, isLoading: featuredLoading, error: featuredError } = useQuery({
+    queryKey: ['featuredProducts'],
+    queryFn: () => productsAPI.getFeatured(),
+  });
+
+  // Fetch all products for categories count
+  const { data: allProductsData, isLoading: allProductsLoading } = useQuery({
+    queryKey: ['allProducts'],
+    queryFn: () => productsAPI.getAll(),
+  });
+
+  const handleImageLoad = (id: string) => {
     setImagesLoaded(prev => ({ ...prev, [id]: true }));
   };
 
-  const featuredProducts = [
-    {
-      id: 1,
-      name: "Classic Leather Boots",
-      price: "RWF 45,000",
-      originalPrice: "RWF 55,000",
-      image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-      category: "Shoes",
-      rating: 4.8,
-      discount: "18% OFF"
-    },
-    {
-      id: 2,
-      name: "Traditional Kitenge Dress",
-      price: "RWF 25,000",
-      image: "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-      category: "Clothes",
-      rating: 4.9,
-      isNew: true
-    },
-    {
-      id: 3,
-      name: "Handcrafted Necklace",
-      price: "RWF 12,000",
-      image: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-      category: "Accessories",
-      rating: 4.7
-    },
-    {
-      id: 4,
-      name: "Modern Ankara Shirt",
-      price: "RWF 18,000",
-      image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
-      category: "Clothes",
-      rating: 4.6
-    }
-  ];
+  const handleShopNow = () => {
+    setIsLoading(true);
+    // Simulate navigation delay
+    setTimeout(() => {
+      setIsLoading(false);
+      toast.success("Welcome to our shop!");
+    }, 2000);
+  };
+
+  if (featuredError) {
+    toast.error("Failed to load featured products");
+  }
+
+  const featuredProducts = featuredProductsData?.data || [];
+  const allProducts = allProductsData?.data?.products || [];
+
+  // Calculate category counts from actual data
+  const getCategoryCount = (category: string) => {
+    const count = allProducts.filter((product: any) => product.category === category).length;
+    return `${count}+ items`;
+  };
 
   const categories = [
     { 
       name: "Shoes", 
-      count: "120+ items", 
+      count: getCategoryCount("Shoes"),
       color: "bg-gradient-to-br from-purple-100 to-purple-200 text-purple-800",
       bgImage: "https://images.unsplash.com/photo-1549298916-b41d501d3772?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
       description: "Step into style with our premium collection"
     },
     { 
       name: "Clothes", 
-      count: "250+ items", 
+      count: getCategoryCount("Clothes"),
       color: "bg-gradient-to-br from-emerald-100 to-emerald-200 text-emerald-800",
       bgImage: "https://images.unsplash.com/photo-1445205170230-053b83016050?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
       description: "Fashion that speaks your language"
     },
     { 
       name: "Accessories", 
-      count: "80+ items", 
+      count: getCategoryCount("Accessories"),
       color: "bg-gradient-to-br from-rose-100 to-rose-200 text-rose-800",
       bgImage: "https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
       description: "Complete your look with perfect accessories"
@@ -114,7 +112,7 @@ const Index = () => {
               <Button 
                 size="lg" 
                 className="bg-gradient-to-r from-white to-purple-50 text-violet-700 hover:from-purple-50 hover:to-white px-12 py-4 text-xl font-bold transform hover:scale-110 hover:rotate-1 transition-all duration-500 shadow-2xl border-2 border-white/20 animate-glow"
-                onClick={() => setIsLoading(true)}
+                onClick={handleShopNow}
               >
                 {isLoading ? (
                   <div className="flex items-center">
@@ -156,48 +154,62 @@ const Index = () => {
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            {categories.map((category, index) => (
-              <Card 
-                key={index} 
-                className="group hover:shadow-3xl transition-all duration-700 cursor-pointer border-0 bg-white/90 backdrop-blur-lg overflow-hidden transform hover:-translate-y-4 hover:rotate-1 animate-stagger-in relative"
-                style={{ animationDelay: `${index * 200}ms` }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="relative h-64 overflow-hidden">
-                  <img 
-                    src={category.bgImage} 
-                    alt={category.name}
-                    className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-125 group-hover:rotate-3"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent group-hover:from-black/60 transition-all duration-500"></div>
-                  <div className="absolute top-6 right-6 transform group-hover:scale-110 transition-transform duration-300">
-                    <Badge className={`${category.color} font-bold shadow-xl text-sm px-4 py-2 animate-pulse-soft`}>
-                      {category.count}
-                    </Badge>
+            {allProductsLoading ? (
+              // Loading skeleton for categories
+              Array.from({ length: 3 }).map((_, index) => (
+                <Card key={index} className="overflow-hidden">
+                  <Skeleton className="h-64 w-full" />
+                  <CardContent className="p-8">
+                    <Skeleton className="h-8 w-3/4 mb-4" />
+                    <Skeleton className="h-4 w-full mb-6" />
+                    <Skeleton className="h-10 w-full" />
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              categories.map((category, index) => (
+                <Card 
+                  key={index} 
+                  className="group hover:shadow-3xl transition-all duration-700 cursor-pointer border-0 bg-white/90 backdrop-blur-lg overflow-hidden transform hover:-translate-y-4 hover:rotate-1 animate-stagger-in relative"
+                  style={{ animationDelay: `${index * 200}ms` }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="relative h-64 overflow-hidden">
+                    <img 
+                      src={category.bgImage} 
+                      alt={category.name}
+                      className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-125 group-hover:rotate-3"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent group-hover:from-black/60 transition-all duration-500"></div>
+                    <div className="absolute top-6 right-6 transform group-hover:scale-110 transition-transform duration-300">
+                      <Badge className={`${category.color} font-bold shadow-xl text-sm px-4 py-2 animate-pulse-soft`}>
+                        {category.count}
+                      </Badge>
+                    </div>
+                    <div className="absolute bottom-6 left-6 right-6">
+                      <h4 className="text-3xl font-black text-white mb-3 group-hover:text-purple-200 transition-colors duration-300 transform group-hover:scale-105">
+                        {category.name}
+                      </h4>
+                    </div>
                   </div>
-                  <div className="absolute bottom-6 left-6 right-6">
-                    <h4 className="text-3xl font-black text-white mb-3 group-hover:text-purple-200 transition-colors duration-300 transform group-hover:scale-105">
-                      {category.name}
-                    </h4>
-                  </div>
-                </div>
-                <CardContent className="p-8 relative">
-                  <p className="text-slate-600 text-base leading-relaxed mb-6">
-                    {category.description}
-                  </p>
-                  <Button 
-                    className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl transform transition-all duration-500 group-hover:shadow-2xl group-hover:scale-105 animate-shimmer"
-                  >
-                    Explore {category.name}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                  <CardContent className="p-8 relative">
+                    <p className="text-slate-600 text-base leading-relaxed mb-6">
+                      {category.description}
+                    </p>
+                    <Button 
+                      className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl transform transition-all duration-500 group-hover:shadow-2xl group-hover:scale-105 animate-shimmer"
+                    >
+                      Explore {category.name}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </div>
       </section>
 
-      {/* Featured Products with Real Images */}
+      {/* Featured Products with Real Data */}
       <section className="py-24 bg-gradient-to-br from-slate-50 to-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-5" style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 50L25 25M50 50L75 25M50 50L25 75M50 50L75 75' stroke='%23violet' stroke-width='1' fill='none'/%3E%3C/svg%3E")`
@@ -218,76 +230,94 @@ const Index = () => {
             </Button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {featuredProducts.map((product, index) => (
-              <Card 
-                key={product.id} 
-                className="group hover:shadow-3xl transition-all duration-700 cursor-pointer border-0 bg-white transform hover:-translate-y-2 hover:rotate-1 animate-stagger-in overflow-hidden relative"
-                style={{ animationDelay: `${index * 150}ms` }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <CardContent className="p-0 relative">
-                  <div className="relative overflow-hidden h-64">
-                    {!imagesLoaded[product.id] && (
-                      <Skeleton className="w-full h-full absolute inset-0 z-10" />
-                    )}
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-2"
-                      onLoad={() => handleImageLoad(product.id)}
-                      style={{ opacity: imagesLoaded[product.id] ? 1 : 0 }}
-                    />
-                    {product.discount && (
-                      <Badge className="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-red-600 text-white animate-bounce-gentle font-bold px-3 py-1">
-                        {product.discount}
-                      </Badge>
-                    )}
-                    {product.isNew && (
-                      <Badge className="absolute top-3 left-3 bg-gradient-to-r from-green-500 to-green-600 text-white animate-bounce-gentle font-bold px-3 py-1">
-                        New
-                      </Badge>
-                    )}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="absolute top-3 right-3 bg-white/90 hover:bg-white transform hover:scale-125 transition-all duration-300 rounded-full w-10 h-10 p-0 animate-float"
-                    >
-                      <Heart className="h-4 w-4 group-hover:text-red-500 transition-colors duration-300" />
-                    </Button>
-                  </div>
-                  <div className="p-6">
-                    <Badge variant="secondary" className="mb-3 bg-violet-100 text-violet-800 font-semibold px-3 py-1">
-                      {product.category}
-                    </Badge>
-                    <h4 className="font-bold mb-3 text-slate-800 group-hover:text-violet-600 transition-colors duration-300 text-lg leading-tight">
-                      {product.name}
-                    </h4>
-                    <div className="flex items-center mb-4">
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm text-slate-600 ml-1 font-medium">{product.rating}</span>
-                      </div>
+            {featuredLoading ? (
+              // Loading skeleton for featured products
+              Array.from({ length: 4 }).map((_, index) => (
+                <Card key={index} className="overflow-hidden">
+                  <Skeleton className="h-64 w-full" />
+                  <CardContent className="p-6">
+                    <Skeleton className="h-4 w-16 mb-3" />
+                    <Skeleton className="h-6 w-3/4 mb-3" />
+                    <Skeleton className="h-4 w-20 mb-4" />
+                    <div className="flex justify-between items-center">
+                      <Skeleton className="h-6 w-24" />
+                      <Skeleton className="h-8 w-20" />
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-xl font-black text-slate-800">{product.price}</span>
-                        {product.originalPrice && (
-                          <span className="text-sm text-slate-500 line-through ml-2">
-                            {product.originalPrice}
-                          </span>
-                        )}
-                      </div>
-                      <Button 
-                        size="sm" 
-                        className="bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 transform hover:scale-110 transition-all duration-300 font-bold px-4 py-2 animate-glow"
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              featuredProducts.map((product: any, index: number) => (
+                <Card 
+                  key={product._id} 
+                  className="group hover:shadow-3xl transition-all duration-700 cursor-pointer border-0 bg-white transform hover:-translate-y-2 hover:rotate-1 animate-stagger-in overflow-hidden relative"
+                  style={{ animationDelay: `${index * 150}ms` }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <CardContent className="p-0 relative">
+                    <div className="relative overflow-hidden h-64">
+                      {!imagesLoaded[product._id] && (
+                        <Skeleton className="w-full h-full absolute inset-0 z-10" />
+                      )}
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-2"
+                        onLoad={() => handleImageLoad(product._id)}
+                        style={{ opacity: imagesLoaded[product._id] ? 1 : 0 }}
+                      />
+                      {product.discountPercentage && (
+                        <Badge className="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-red-600 text-white animate-bounce-gentle font-bold px-3 py-1">
+                          {product.discountPercentage}
+                        </Badge>
+                      )}
+                      {product.isNew && (
+                        <Badge className="absolute top-3 left-3 bg-gradient-to-r from-green-500 to-green-600 text-white animate-bounce-gentle font-bold px-3 py-1">
+                          New
+                        </Badge>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="absolute top-3 right-3 bg-white/90 hover:bg-white transform hover:scale-125 transition-all duration-300 rounded-full w-10 h-10 p-0 animate-float"
                       >
-                        Add to Cart
+                        <Heart className="h-4 w-4 group-hover:text-red-500 transition-colors duration-300" />
                       </Button>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    <div className="p-6">
+                      <Badge variant="secondary" className="mb-3 bg-violet-100 text-violet-800 font-semibold px-3 py-1">
+                        {product.category}
+                      </Badge>
+                      <h4 className="font-bold mb-3 text-slate-800 group-hover:text-violet-600 transition-colors duration-300 text-lg leading-tight">
+                        {product.name}
+                      </h4>
+                      <div className="flex items-center mb-4">
+                        <div className="flex items-center">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span className="text-sm text-slate-600 ml-1 font-medium">{product.rating}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-xl font-black text-slate-800">RWF {product.price?.toLocaleString()}</span>
+                          {product.originalPrice && (
+                            <span className="text-sm text-slate-500 line-through ml-2">
+                              RWF {product.originalPrice?.toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+                        <Button 
+                          size="sm" 
+                          className="bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 transform hover:scale-110 transition-all duration-300 font-bold px-4 py-2 animate-glow"
+                        >
+                          Add to Cart
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </div>
       </section>

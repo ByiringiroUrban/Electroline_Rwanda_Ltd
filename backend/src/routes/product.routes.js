@@ -1,17 +1,23 @@
+
 import express from 'express';
 import {
   createProduct,
   getAllProducts,
   getProductById,
   updateProduct,
-  deleteProduct
+  deleteProduct,
+  getFeaturedProducts
 } from '../controllers/productController.js';
+import { authenticate } from '../middleware/auth.middleware.js';
 
 export const productRoutes = express.Router();
 
-// Routes
-productRoutes.post('/', createProduct);
+// Public routes
 productRoutes.get('/', getAllProducts);
+productRoutes.get('/featured', getFeaturedProducts);
 productRoutes.get('/:id', getProductById);
-productRoutes.put('/:id', updateProduct);
-productRoutes.delete('/:id', deleteProduct);
+
+// Protected routes (admin only - you can add admin middleware later)
+productRoutes.post('/', authenticate, createProduct);
+productRoutes.put('/:id', authenticate, updateProduct);
+productRoutes.delete('/:id', authenticate, deleteProduct);

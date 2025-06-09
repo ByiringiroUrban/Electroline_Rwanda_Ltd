@@ -5,17 +5,31 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 import Header from "@/components/Header";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login attempt:", { email, password });
-    // Handle login logic here
+    setIsLoading(true);
+
+    try {
+      await login(email, password);
+      toast.success("Login successful!");
+      navigate("/");
+    } catch (error: any) {
+      toast.error(error.message || "Login failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -27,7 +41,7 @@ const Login = () => {
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
             <CardDescription>
-              Sign in to your Rwanda Fashion Hub account
+              Sign in to your RwandaStyle account
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -41,6 +55,7 @@ const Login = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -52,6 +67,7 @@ const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="flex items-center justify-between">
@@ -69,8 +85,16 @@ const Login = () => {
               <Button 
                 type="submit" 
                 className="w-full bg-gradient-to-r from-orange-600 to-blue-600 hover:from-orange-700 hover:to-blue-700"
+                disabled={isLoading}
               >
-                Sign In
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                    Signing In...
+                  </div>
+                ) : (
+                  "Sign In"
+                )}
               </Button>
             </form>
             

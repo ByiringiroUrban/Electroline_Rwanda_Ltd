@@ -1,34 +1,119 @@
-// Dummy in-memory products array (you can replace with DB logic later)
-let products = [];
 
-export const createProduct = (req, res) => {
-  const product = { id: Date.now(), ...req.body };
-  products.push(product);
-  res.status(201).json(product);
+import Product from '../models/Product.js';
+import sendResponse from '../utils/sendResponse.js';
+
+export const createProduct = async (req, res) => {
+  try {
+    const { name, price, description, image, countInStock, category } = req.body;
+    
+    const product = new Product({
+      name,
+      price,
+      description,
+      image,
+      countInStock,
+      category
+    });
+
+    const savedProduct = await product.save();
+    sendResponse(res, 201, true, savedProduct);
+  } catch (error) {
+    console.error('Create product error:', error);
+    sendResponse(res, 400, false, error.message);
+  }
 };
 
-export const getAllProducts = (req, res) => {
-  res.json(products);
+export const getAllProducts = async (req, res) => {
+  try {
+    const { category, search, page = 1, limit = 12 } = req.query;
+    const query = {};
+    
+    if (category) {
+      query.category = category;
+    }
+    
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const skip = (page - 1) * limit;
+    const products = await Product.find(query)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .sort({ createdAt: -1 });
+    
+    const total = await Product.countDocuments(query);
+    
+    sendResponse(res, 200, true, {
+      products,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / limit),
+        totalProducts: total,
+        hasNext: page * limit < total,
+        hasPrev: page > 1
+      }
+    });
+  } catch (error) {
+    console.error('Get products error:', error);
+    sendResponse(res, 500, false, error.message);
+  }
 };
 
-export const getProductById = (req, res) => {
-  const product = products.find(p => p.id === Number(req.params.id));
-  if (!product) return res.status(404).json({ message: 'Product not found' });
-  res.json(product);
+export const getProductById = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return sendResponse(res, 404, false, 'Product not found');
+    }
+    sendResponse(res, 200, true, product);
+  } catch (error) {
+    console.error('Get product error:', error);
+    sendResponse(res, 500, false, error.message);
+  }
 };
 
-export const updateProduct = (req, res) => {
-  const index = products.findIndex(p => p.id === Number(req.params.id));
-  if (index === -1) return res.status(404).json({ message: 'Product not found' });
-
-  products[index] = { ...products[index], ...req.body };
-  res.json(products[index]);
+export const updateProduct = async (req, res) => {
+  try {
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    
+    if (!product) {
+      return sendResponse(res, 404, false, 'Product not found');
+    }
+    
+    sendResponse(res, 200, true, product);
+  } catch (error) {
+    console.error('Update product error:', error);
+    sendResponse(res, 400, false, error.message);
+  }
 };
 
-export const deleteProduct = (req, res) => {
-  const index = products.findIndex(p => p.id === Number(req.params.id));
-  if (index === -1) return res.status(404).json({ message: 'Product not found' });
+export const deleteProduct = async (req, res) => {
+  try {
+    const product = await Product.findByIdAndDelete(req.params.id);
+    if (!product) {
+      return sendResponse(res, 404, false, 'Product not found');
+    }
+    sendResponse(res, 200, true, { message: 'Product deleted successfully' });
+  } catch (error) {
+    console.error('Delete product error:', error);
+    sendResponse(res, 500, false, error.message);
+  }
+};
 
-  const deleted = products.splice(index, 1);
-  res.json(deleted[0]);
+export const getFeaturedProducts = async (req, res) => {
+  try {
+    const products = await Product.find({ featured: true }).limit(8);
+    sendResponse(res, 200, true, products);
+  } catch (error) {
+    console.error('Get featured products error:', error);
+    sendResponse(res, 500, false, error.message);
+  }
 };

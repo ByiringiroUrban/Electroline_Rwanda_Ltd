@@ -5,7 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 import Header from "@/components/Header";
 
 const Signup = () => {
@@ -17,6 +19,9 @@ const Signup = () => {
     password: "",
     confirmPassword: ""
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const { register } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -25,10 +30,31 @@ const Signup = () => {
     });
   };
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Signup attempt:", formData);
-    // Handle signup logic here
+    
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const fullName = `${formData.firstName} ${formData.lastName}`;
+      await register(fullName, formData.email, formData.password);
+      toast.success("Account created successfully!");
+      navigate("/");
+    } catch (error: any) {
+      toast.error(error.message || "Registration failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -38,7 +64,7 @@ const Signup = () => {
       <div className="flex items-center justify-center px-4 py-12">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">Join Rwanda Fashion Hub</CardTitle>
+            <CardTitle className="text-2xl font-bold">Join RwandaStyle</CardTitle>
             <CardDescription>
               Create your account to start shopping
             </CardDescription>
@@ -55,6 +81,7 @@ const Signup = () => {
                     value={formData.firstName}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -66,6 +93,7 @@ const Signup = () => {
                     value={formData.lastName}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                   />
                 </div>
               </div>
@@ -79,6 +107,7 @@ const Signup = () => {
                   value={formData.email}
                   onChange={handleChange}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -91,6 +120,7 @@ const Signup = () => {
                   value={formData.phone}
                   onChange={handleChange}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -103,6 +133,7 @@ const Signup = () => {
                   value={formData.password}
                   onChange={handleChange}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -115,6 +146,7 @@ const Signup = () => {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="flex items-center space-x-2">
@@ -123,6 +155,7 @@ const Signup = () => {
                   id="terms" 
                   className="rounded border-gray-300" 
                   required 
+                  disabled={isLoading}
                 />
                 <Label htmlFor="terms" className="text-sm">
                   I agree to the{" "}
@@ -138,8 +171,16 @@ const Signup = () => {
               <Button 
                 type="submit" 
                 className="w-full bg-gradient-to-r from-orange-600 to-blue-600 hover:from-orange-700 hover:to-blue-700"
+                disabled={isLoading}
               >
-                Create Account
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                    Creating Account...
+                  </div>
+                ) : (
+                  "Create Account"
+                )}
               </Button>
             </form>
             
