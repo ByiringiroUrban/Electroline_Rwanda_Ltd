@@ -54,7 +54,7 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check for demo admin credentials
+    // Check for demo admin credentials first
     if (email === 'admin@rwandastyle.com' && password === 'admin123') {
       // Create or find admin user
       let adminUser = await User.findOne({ email: 'admin@rwandastyle.com' });
@@ -89,7 +89,7 @@ export const login = async (req, res) => {
       });
     }
 
-    // Find user
+    // Find regular user
     const user = await User.findOne({ email });
     if (!user) {
       return sendResponse(res, 401, false, 'Invalid credentials');

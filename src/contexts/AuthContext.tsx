@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI } from '@/lib/api';
 
 interface User {
-  _id: string;
+  id: string;
   name: string;
   email: string;
   isAdmin?: boolean;
@@ -52,7 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await authAPI.login({ email, password });
       
       if (response.success) {
-        const { token: authToken, ...userData } = response.data;
+        const { token: authToken, user: userData } = response.data;
         setToken(authToken);
         setUser(userData);
         localStorage.setItem('token', authToken);
@@ -71,7 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await authAPI.register({ name, email, password });
       
       if (response.success) {
-        const { token: authToken, ...userData } = response.data;
+        const { token: authToken, user: userData } = response.data;
         setToken(authToken);
         setUser(userData);
         localStorage.setItem('token', authToken);

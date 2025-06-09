@@ -12,6 +12,10 @@ import ForgotPassword from "./pages/ForgotPassword";
 import Products from "./pages/Products";
 import AdminDashboard from "./pages/AdminDashboard";
 import Profile from "./pages/Profile";
+import Contact from "./pages/Contact";
+import Shipping from "./pages/Shipping";
+import Returns from "./pages/Returns";
+import SizeGuide from "./pages/SizeGuide";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +38,10 @@ const App = () => (
             <Route path="/accessories" element={<Products />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/shipping" element={<Shipping />} />
+            <Route path="/returns" element={<Returns />} />
+            <Route path="/size-guide" element={<SizeGuide />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

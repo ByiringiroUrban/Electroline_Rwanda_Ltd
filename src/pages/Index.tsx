@@ -97,7 +97,7 @@ const Index = () => {
       setCategories(dynamicCategories);
     } catch (error) {
       console.error('Failed to fetch category data:', error);
-      // Fallback to static data if API fails
+      // Fallback to static data with high-quality images
       setCategories([
         {
           name: 'Shoes',
@@ -243,6 +243,15 @@ const Index = () => {
                     src={category.bgImage} 
                     alt={category.name}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    onError={(e) => {
+                      // Fallback images if the dynamic ones fail
+                      const fallbackImages = {
+                        'Shoes': 'https://images.unsplash.com/photo-1542296636-e39e98198c94?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+                        'Clothes': 'https://images.unsplash.com/photo-1592078615290-0afee58c2ca9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1964&q=80',
+                        'Accessories': 'https://images.unsplash.com/photo-1547658719-19c95eadc5df?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'
+                      };
+                      (e.target as HTMLImageElement).src = fallbackImages[category.name as keyof typeof fallbackImages];
+                    }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
                   <div className="absolute top-4 right-4">
