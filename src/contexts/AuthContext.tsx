@@ -30,7 +30,7 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,9 +38,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const storedToken = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
     
+    console.log('Initial auth check:', { storedToken: !!storedToken, storedUser: !!storedUser });
+    
     if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+      try {
+        const userData = JSON.parse(storedUser);
+        setToken(storedToken);
+        setUser(userData);
+        console.log('Auth state restored:', userData);
+      } catch (error) {
+        console.error('Error parsing stored user data:', error);
+        // Clear invalid data
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
     }
     
     setLoading(false);
@@ -49,17 +60,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     try {
       setLoading(true);
-      const response = await authAPI.login({ email, password });
+      console.log('Attempting login for:', email);
       
-      if (response.success) {
+      const response = await authAPI.login({ email, password });
+      console.log('Login response:', response);
+      
+      if (response.success && response.data) {
         const { token: authToken, user: userData } = response.data;
+        
+        console.log('Setting auth data:', { token: !!authToken, user: userData });
+        
+        // Update state first
         setToken(authToken);
         setUser(userData);
+        
+        // Then update localStorage
         localStorage.setItem('token', authToken);
         localStorage.setItem('user', JSON.stringify(userData));
+        
+        console.log('Login successful, user set:', userData);
+      } else {
+        throw new Error(response.message || 'Login failed');
       }
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      console.error('Login error:', error);
+      throw new Error(error.message || 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -68,23 +93,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (name: string, email: string, password: string) => {
     try {
       setLoading(true);
-      const response = await authAPI.register({ name, email, password });
+      console.log('Attempting registration for:', email);
       
-      if (response.success) {
+      const response = await authAPI.register({ name, email, password });
+      console.log('Register response:', response);
+      
+      if (response.success && response.data) {
         const { token: authToken, user: userData } = response.data;
+        
+        console.log('Setting auth data after registration:', { token: !!authToken, user: userData });
+        
+        // Update state first
         setToken(authToken);
         setUser(userData);
+        
+        // Then update localStorage
         localStorage.setItem('token', authToken);
         localStorage.setItem('user', JSON.stringify(userData));
+        
+        console.log('Registration successful, user set:', userData);
+      } else {
+        throw new Error(response.message || 'Registration failed');
       }
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      throw new Error(error.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
   };
 
   const logout = () => {
+    console.log('Logging out user');
     setUser(null);
     setToken(null);
     localStorage.removeItem('token');
@@ -99,6 +139,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     loading,
   };
+
+  console.log('Auth context value:', { user: !!user, token: !!token, loading });
 
   return (
     <AuthContext.Provider value={value}>
