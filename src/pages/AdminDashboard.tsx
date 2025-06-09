@@ -38,12 +38,19 @@ interface Notification {
   createdAt: string;
 }
 
+interface Subscriber {
+  _id: string;
+  email: string;
+  subscribedAt: string;
+  createdAt: string;
+}
+
 const AdminDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [subscribers, setSubscribers] = useState<any[]>([]);
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -87,12 +94,40 @@ const AdminDashboard = () => {
         ordersAPI.getMyOrders()
       ]);
 
-      if (productsRes.success) setProducts(productsRes.data.products);
-      if (notificationsRes.success) setNotifications(notificationsRes.data);
-      if (subscribersRes.success) setSubscribers(subscribersRes.data);
-      if (ordersRes.success) setOrders(ordersRes.data);
+      console.log('API Responses:', { productsRes, notificationsRes, subscribersRes, ordersRes });
+
+      if (productsRes.success) {
+        setProducts(Array.isArray(productsRes.data.products) ? productsRes.data.products : []);
+      }
+      
+      if (notificationsRes.success) {
+        setNotifications(Array.isArray(notificationsRes.data) ? notificationsRes.data : []);
+      }
+      
+      if (subscribersRes.success) {
+        // Handle different possible response structures
+        let subscriberList = [];
+        if (Array.isArray(subscribersRes.data)) {
+          subscriberList = subscribersRes.data;
+        } else if (subscribersRes.data && Array.isArray(subscribersRes.data.subscribers)) {
+          subscriberList = subscribersRes.data.subscribers;
+        } else if (subscribersRes.data && subscribersRes.data.data && Array.isArray(subscribersRes.data.data.subscribers)) {
+          subscriberList = subscribersRes.data.data.subscribers;
+        }
+        setSubscribers(subscriberList);
+      }
+      
+      if (ordersRes.success) {
+        setOrders(Array.isArray(ordersRes.data) ? ordersRes.data : []);
+      }
     } catch (error: any) {
+      console.error('Fetch data error:', error);
       toast.error(error.message || 'Failed to fetch data');
+      // Set default empty arrays on error
+      setProducts([]);
+      setNotifications([]);
+      setSubscribers([]);
+      setOrders([]);
     } finally {
       setLoading(false);
     }
@@ -624,26 +659,38 @@ const AdminDashboard = () => {
                 <CardTitle>Newsletter Subscribers</CardTitle>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Subscribed Date</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {subscribers.map((subscriber) => (
-                      <TableRow key={subscriber._id}>
-                        <TableCell>{subscriber.email}</TableCell>
-                        <TableCell>{new Date(subscriber.createdAt).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                          <Badge className="bg-green-500">Active</Badge>
-                        </TableCell>
+                {loading ? (
+                  <div className="text-center py-8">Loading subscribers...</div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Subscribed Date</TableHead>
+                        <TableHead>Status</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {Array.isArray(subscribers) && subscribers.length > 0 ? (
+                        subscribers.map((subscriber) => (
+                          <TableRow key={subscriber._id}>
+                            <TableCell>{subscriber.email}</TableCell>
+                            <TableCell>{new Date(subscriber.subscribedAt || subscriber.createdAt).toLocaleDateString()}</TableCell>
+                            <TableCell>
+                              <Badge className="bg-green-500">Active</Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-center py-8 text-gray-500">
+                            No subscribers found
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
