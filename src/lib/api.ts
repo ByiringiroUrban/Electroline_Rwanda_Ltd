@@ -143,3 +143,26 @@ export const ordersAPI = {
     });
   },
 };
+
+// Newsletter API
+export const newsletterAPI = {
+  subscribe: async (email: string) => {
+    return apiRequest('/newsletter/subscribe', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+  
+  unsubscribe: async (email: string) => {
+    return apiRequest('/newsletter/unsubscribe', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+  
+  getSubscribers: async () => {
+    return apiRequest('/newsletter', {
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+    });
+  },
+};
