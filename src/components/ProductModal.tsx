@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Heart, ShoppingCart, Star } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { favoritesAPI } from '@/lib/api';
@@ -16,6 +17,7 @@ interface Product {
   originalPrice?: number;
   description: string;
   image: string;
+  images?: string[];
   category: string;
   rating: number;
   numReviews: number;
@@ -62,6 +64,9 @@ const ProductModal = ({ product, isOpen, onClose }: ProductModalProps) => {
 
   if (!product) return null;
 
+  // Get all product images (main image + additional images)
+  const allImages = [product.image, ...(product.images || [])].filter(Boolean);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -72,19 +77,49 @@ const ProductModal = ({ product, isOpen, onClose }: ProductModalProps) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div className="relative">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-96 object-cover rounded-lg"
-              />
-              <Button
-                size="sm"
-                variant="ghost"
-                className={`absolute top-2 right-2 ${isFavorite ? 'text-red-500' : 'text-gray-500'}`}
-                onClick={handleToggleFavorite}
-              >
-                <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
-              </Button>
+              {allImages.length > 1 ? (
+                <Carousel className="w-full max-w-md mx-auto">
+                  <CarouselContent>
+                    {allImages.map((image, index) => (
+                      <CarouselItem key={index}>
+                        <div className="relative">
+                          <img
+                            src={image}
+                            alt={`${product.name} - Image ${index + 1}`}
+                            className="w-full h-96 object-cover rounded-lg"
+                          />
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className={`absolute top-2 right-2 ${isFavorite ? 'text-red-500' : 'text-gray-500'}`}
+                            onClick={handleToggleFavorite}
+                          >
+                            <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
+                          </Button>
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious />
+                  <CarouselNext />
+                </Carousel>
+              ) : (
+                <div className="relative">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-96 object-cover rounded-lg"
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className={`absolute top-2 right-2 ${isFavorite ? 'text-red-500' : 'text-gray-500'}`}
+                    onClick={handleToggleFavorite}
+                  >
+                    <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
 

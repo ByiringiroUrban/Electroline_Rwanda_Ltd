@@ -4,13 +4,14 @@ import sendResponse from '../utils/sendResponse.js';
 
 export const createProduct = async (req, res) => {
   try {
-    const { name, price, description, image, countInStock, category } = req.body;
+    const { name, price, description, image, images, countInStock, category } = req.body;
     
     const product = new Product({
       name,
       price,
       description,
       image,
+      images: images || [],
       countInStock,
       category
     });

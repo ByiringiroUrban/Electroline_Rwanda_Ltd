@@ -1,4 +1,3 @@
-
 const API_BASE_URL = 'http://localhost:5000/api';
 
 // Get auth token from localStorage
@@ -249,6 +248,30 @@ export const newsletterAPI = {
   getSubscribers: async () => {
     return apiRequest('/newsletter', {
       headers: { Authorization: `Bearer ${getAuthToken()}` },
+    });
+  },
+};
+
+// User Notifications API
+export const userNotificationsAPI = {
+  get: async () => {
+    return apiRequest('/user-notifications', {
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+    });
+  },
+  
+  markAsRead: async (notificationId: string) => {
+    return apiRequest(`/user-notifications/${notificationId}/read`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+    });
+  },
+  
+  add: async (userId: string, title: string, message: string, type?: string) => {
+    return apiRequest('/user-notifications/add', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+      body: JSON.stringify({ userId, title, message, type }),
     });
   },
 };

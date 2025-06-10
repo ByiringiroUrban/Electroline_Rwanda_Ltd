@@ -302,7 +302,7 @@ const Index = () => {
           
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[...Array(4)].map((_, i) => (
+              {[...Array(8)].map((_, i) => (
                 <div key={i} className="animate-pulse">
                   <div className="bg-gray-200 h-48 rounded-lg mb-4"></div>
                   <div className="bg-gray-200 h-4 rounded mb-2"></div>
@@ -312,7 +312,7 @@ const Index = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredProducts.length > 0 ? featuredProducts.map((product, index) => (
+              {featuredProducts.length > 0 ? featuredProducts.slice(0, 8).map((product, index) => (
                 <Card 
                   key={product._id} 
                   className="group hover:shadow-xl transition-all duration-500 cursor-pointer border-0 bg-white transform hover:-translate-y-1 animate-fade-in"
@@ -377,6 +377,18 @@ const Index = () => {
                   <p className="text-gray-500">No featured products available</p>
                 </div>
               )}
+            </div>
+          )}
+          
+          {/* Show pagination or "View More" if there are more than 8 featured products */}
+          {featuredProducts.length > 8 && (
+            <div className="text-center mt-8">
+              <Button 
+                onClick={handleShopNowClick}
+                className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-8 py-3 font-semibold transform hover:scale-105 transition-all duration-300"
+              >
+                View All Featured Products ({featuredProducts.length})
+              </Button>
             </div>
           )}
         </div>

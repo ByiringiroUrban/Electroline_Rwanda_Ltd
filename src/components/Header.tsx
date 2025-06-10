@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Settings } from "lucide-react";
+import NotificationBell from "@/components/NotificationBell";
 
 const Header = () => {
   const { user, logout, loading } = useAuth();
@@ -114,6 +115,9 @@ const Header = () => {
             <Button variant="ghost" size="sm">
               <ShoppingCart className="h-4 w-4" />
             </Button>
+            
+            {/* Notification Bell - only show for logged in users */}
+            {user && <NotificationBell />}
             
             {user ? (
               <DropdownMenu>

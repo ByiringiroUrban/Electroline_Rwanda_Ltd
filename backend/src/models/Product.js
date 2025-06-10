@@ -24,6 +24,10 @@ const productSchema = new mongoose.Schema({
     type: String,
     default: '/api/placeholder/300/300'
   },
+  images: [{
+    type: String,
+    default: []
+  }],
   category: {
     type: String,
     required: [true, 'Product category is required'],
