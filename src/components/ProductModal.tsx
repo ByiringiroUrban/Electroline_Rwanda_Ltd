@@ -33,27 +33,8 @@ interface ProductModalProps {
 const ProductModal = ({ product, isOpen, onClose }: ProductModalProps) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  const [loadingFavorite, setLoadingFavorite] = useState(false);
   const { addToCart } = useCart();
   const { user } = useAuth();
-
-  useEffect(() => {
-    if (product && user) {
-      // Check if product is in favorites
-      const checkFavoriteStatus = async () => {
-        try {
-          const response = await favoritesAPI.get();
-          if (response.success) {
-            const favoriteIds = response.data.map((fav: any) => fav._id);
-            setIsFavorite(favoriteIds.includes(product._id));
-          }
-        } catch (error) {
-          console.error('Failed to check favorite status:', error);
-        }
-      };
-      checkFavoriteStatus();
-    }
-  }, [product, user]);
 
   const handleAddToCart = async () => {
     if (!product) return;
@@ -66,7 +47,6 @@ const ProductModal = ({ product, isOpen, onClose }: ProductModalProps) => {
       return;
     }
 
-    setLoadingFavorite(true);
     try {
       if (isFavorite) {
         await favoritesAPI.remove(product._id);
@@ -78,10 +58,7 @@ const ProductModal = ({ product, isOpen, onClose }: ProductModalProps) => {
         toast.success('Added to favorites');
       }
     } catch (error: any) {
-      console.error('Favorite toggle error:', error);
       toast.error(error.message || 'Failed to update favorites');
-    } finally {
-      setLoadingFavorite(false);
     }
   };
 
@@ -110,24 +87,15 @@ const ProductModal = ({ product, isOpen, onClose }: ProductModalProps) => {
                             src={image}
                             alt={`${product.name} - Image ${index + 1}`}
                             className="w-full h-96 object-cover rounded-lg"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.src = '/placeholder.svg';
-                            }}
                           />
-                          {index === 0 && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className={`absolute top-2 right-2 bg-white/90 hover:bg-white ${
-                                isFavorite ? 'text-red-500' : 'text-gray-500'
-                              }`}
-                              onClick={handleToggleFavorite}
-                              disabled={loadingFavorite}
-                            >
-                              <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
-                            </Button>
-                          )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className={`absolute top-2 right-2 ${isFavorite ? 'text-red-500' : 'text-gray-500'}`}
+                            onClick={handleToggleFavorite}
+                          >
+                            <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
+                          </Button>
                         </div>
                       </CarouselItem>
                     ))}
@@ -141,19 +109,12 @@ const ProductModal = ({ product, isOpen, onClose }: ProductModalProps) => {
                     src={product.image}
                     alt={product.name}
                     className="w-full h-96 object-cover rounded-lg"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = '/placeholder.svg';
-                    }}
                   />
                   <Button
                     size="sm"
                     variant="ghost"
-                    className={`absolute top-2 right-2 bg-white/90 hover:bg-white ${
-                      isFavorite ? 'text-red-500' : 'text-gray-500'
-                    }`}
+                    className={`absolute top-2 right-2 ${isFavorite ? 'text-red-500' : 'text-gray-500'}`}
                     onClick={handleToggleFavorite}
-                    disabled={loadingFavorite}
                   >
                     <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
                   </Button>

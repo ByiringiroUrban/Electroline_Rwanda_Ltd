@@ -45,10 +45,6 @@ const userSchema = new mongoose.Schema({
       default: 1
     }
   }],
-  favorites: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product'
-  }],
   notifications: [{
     title: {
       type: String,

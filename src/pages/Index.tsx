@@ -1,16 +1,14 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, Heart, ShoppingCart, ArrowRight } from "lucide-react";
-import HeaderWithFeatures from "@/components/HeaderWithFeatures";
-import NotificationBanner from "@/components/NotificationBanner";
-import ProductModal from "@/components/ProductModal";
-import { productsAPI, favoritesAPI } from "@/lib/api";
-import { useCart } from "@/contexts/CartContext";
+import { Star, Heart } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { productsAPI, newsletterAPI } from "@/lib/api";
 import { toast } from "sonner";
+import Header from "@/components/Header";
 
 interface Product {
   _id: string;
@@ -23,161 +21,283 @@ interface Product {
   rating: number;
   numReviews: number;
   featured: boolean;
-  countInStock: number;
+  isNew: boolean;
+  discount?: string;
+}
+
+interface Category {
+  name: string;
+  description: string;
+  bgImage: string;
+  color: string;
+  count: number;
 }
 
 const Index = () => {
+  const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [showProductModal, setShowProductModal] = useState(false);
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [displayedProducts, setDisplayedProducts] = useState<Product[]>([]);
-  const [showAll, setShowAll] = useState(false);
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [subscribing, setSubscribing] = useState(false);
 
-  const { addToCart } = useCart();
-  const { user } = useAuth();
-
-  useEffect(() => {
-    const fetchFeaturedProducts = async () => {
-      try {
-        setLoading(true);
-        const response = await productsAPI.getFeatured();
-        if (response.success) {
-          setFeaturedProducts(response.data);
-          // Display first 8 products by default (2 rows x 4 columns)
-          setDisplayedProducts(response.data.slice(0, 8));
-        }
-      } catch (error: any) {
-        toast.error(error.message || 'Failed to fetch featured products');
-      } finally {
-        setLoading(false);
+  const fetchFeaturedProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await productsAPI.getFeatured();
+      if (response.success) {
+        setFeaturedProducts(response.data);
       }
-    };
-
-    const fetchFavorites = async () => {
-      if (!user) return;
-      try {
-        const response = await favoritesAPI.get();
-        if (response.success) {
-          setFavorites(response.data.map((fav: any) => fav._id));
-        }
-      } catch (error) {
-        console.error('Failed to fetch favorites:', error);
-      }
-    };
-
-    fetchFeaturedProducts();
-    fetchFavorites();
-  }, [user]);
-
-  const handleViewMore = () => {
-    if (showAll) {
-      setDisplayedProducts(featuredProducts.slice(0, 8));
-      setShowAll(false);
-    } else {
-      setDisplayedProducts(featuredProducts);
-      setShowAll(true);
+    } catch (error: any) {
+      console.error('Failed to fetch featured products:', error);
+      toast.error('Failed to load featured products');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleProductClick = (product: Product) => {
-    setSelectedProduct(product);
-    setShowProductModal(true);
+  const fetchCategoryData = async () => {
+    try {
+      const [shoesRes, clothesRes, accessoriesRes] = await Promise.all([
+        productsAPI.getAll({ category: 'Shoes', limit: 1 }),
+        productsAPI.getAll({ category: 'Clothes', limit: 1 }),
+        productsAPI.getAll({ category: 'Accessories', limit: 1 })
+      ]);
+
+      const dynamicCategories: Category[] = [
+        {
+          name: 'Shoes',
+          description: 'Step into style with our diverse shoe collection.',
+          bgImage: shoesRes.success && shoesRes.data.products.length > 0 
+            ? shoesRes.data.products[0].image 
+            : 'https://images.unsplash.com/photo-1542296636-e39e98198c94?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+          color: 'bg-blue-100 text-blue-800',
+          count: shoesRes.success ? shoesRes.data.pagination.totalProducts : 0
+        },
+        {
+          name: 'Clothes',
+          description: 'Dress to impress with our trendy clothing line.',
+          bgImage: clothesRes.success && clothesRes.data.products.length > 0 
+            ? clothesRes.data.products[0].image 
+            : 'https://images.unsplash.com/photo-1592078615290-0afee58c2ca9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1964&q=80',
+          color: 'bg-green-100 text-green-800',
+          count: clothesRes.success ? clothesRes.data.pagination.totalProducts : 0
+        },
+        {
+          name: 'Accessories',
+          description: 'Complete your look with our unique accessories.',
+          bgImage: accessoriesRes.success && accessoriesRes.data.products.length > 0 
+            ? accessoriesRes.data.products[0].image 
+            : 'https://images.unsplash.com/photo-1547658719-19c95eadc5df?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+          color: 'bg-yellow-100 text-yellow-800',
+          count: accessoriesRes.success ? accessoriesRes.data.pagination.totalProducts : 0
+        }
+      ];
+
+      setCategories(dynamicCategories);
+    } catch (error) {
+      console.error('Failed to fetch category data:', error);
+      // Fallback to static data with high-quality images
+      setCategories([
+        {
+          name: 'Shoes',
+          description: 'Step into style with our diverse shoe collection.',
+          bgImage: 'https://images.unsplash.com/photo-1542296636-e39e98198c94?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+          color: 'bg-blue-100 text-blue-800',
+          count: 0
+        },
+        {
+          name: 'Clothes',
+          description: 'Dress to impress with our trendy clothing line.',
+          bgImage: 'https://images.unsplash.com/photo-1592078615290-0afee58c2ca9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1964&q=80',
+          color: 'bg-green-100 text-green-800',
+          count: 0
+        },
+        {
+          name: 'Accessories',
+          description: 'Complete your look with our unique accessories.',
+          bgImage: 'https://images.unsplash.com/photo-1547658719-19c95eadc5df?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+          color: 'bg-yellow-100 text-yellow-800',
+          count: 0
+        }
+      ]);
+    }
   };
 
-  const handleToggleFavorite = async (productId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!user) {
-      toast.error('Please login to add favorites');
+  useEffect(() => {
+    fetchFeaturedProducts();
+    fetchCategoryData();
+  }, []);
+
+  const handleShopNowClick = () => {
+    navigate('/products');
+  };
+
+  const handleViewCategoriesClick = () => {
+    navigate('/products');
+  };
+
+  const handleCategoryClick = (categoryName: string) => {
+    navigate(`/products?category=${categoryName}`);
+  };
+
+  const handleNewsletterSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newsletterEmail) {
+      toast.error('Please enter your email address');
       return;
     }
 
+    setSubscribing(true);
     try {
-      if (favorites.includes(productId)) {
-        await favoritesAPI.remove(productId);
-        setFavorites(prev => prev.filter(id => id !== productId));
-        toast.success('Removed from favorites');
-      } else {
-        await favoritesAPI.add(productId);
-        setFavorites(prev => [...prev, productId]);
-        toast.success('Added to favorites');
+      const response = await newsletterAPI.subscribe(newsletterEmail);
+      if (response.success) {
+        toast.success(response.data.message || 'Successfully subscribed to our newsletter!');
+        setNewsletterEmail('');
+        
+        // Simulate sending email notification to your email
+        console.log(`Newsletter subscription notification sent to: getwayconnection@gmail.com`);
+        console.log(`New subscriber: ${newsletterEmail}`);
       }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to update favorites');
+      toast.error(error.message || 'Failed to subscribe. Please try again.');
+    } finally {
+      setSubscribing(false);
     }
-  };
-
-  const handleAddToCart = async (productId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    await addToCart(productId);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
-      <HeaderWithFeatures />
-      
-      {/* Notifications */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <NotificationBanner />
-      </div>
-      
+      <Header />
+
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              Style That Speaks <span className="text-yellow-300">You</span>
-            </h1>
+      <section className="relative bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white py-20 overflow-hidden">
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-30"
+          style={{
+            backgroundImage: 'url("https://images.unsplash.com/photo-1549298916-b41d501d3772?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80")'
+          }}
+        ></div>
+        <div className="absolute inset-0 opacity-30" style={{
+          backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.1\'%3E%3Ccircle cx=\'30\' cy=\'30\' r=\'2\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'
+        }}></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center animate-fade-in">
+            <h2 className="text-4xl md:text-6xl font-bold mb-6 animate-scale-in">
+              Fashion for Every Rwandan
+            </h2>
             <p className="text-xl md:text-2xl mb-8 opacity-90">
-              Discover the latest trends in fashion from Rwanda and beyond
+              Discover shoes, clothes & accessories that celebrate your style
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/products">
-                <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100 text-lg px-8 py-3">
-                  Shop Now
-                </Button>
-              </Link>
-              <Link to="/products?category=Shoes">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-purple-600 text-lg px-8 py-3">
-                  View Collections
-                </Button>
-              </Link>
+              <Button 
+                size="lg" 
+                onClick={handleShopNowClick}
+                className="bg-white text-violet-600 hover:bg-slate-100 px-8 py-3 text-lg font-semibold transform hover:scale-105 transition-all duration-300 shadow-lg"
+              >
+                {loading ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-violet-600 border-t-transparent mr-2"></div>
+                    Loading...
+                  </div>
+                ) : (
+                  'Shop Now'
+                )}
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                onClick={handleViewCategoriesClick}
+                className="border-white text-white hover:bg-white hover:text-violet-600 px-8 py-3 text-lg font-semibold transform hover:scale-105 transition-all duration-300"
+              >
+                View Categories
+              </Button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Featured Categories */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-12">Shop by Category</h2>
+      {/* Categories Section */}
+      <section className="py-20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-violet-50/50 via-purple-50/30 to-indigo-50/50"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-16 animate-fade-in">
+            <h3 className="text-4xl font-bold mb-4 bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+              Shop by Category
+            </h3>
+            <p className="text-slate-600 text-lg max-w-2xl mx-auto">
+              Explore our curated collections designed for the modern Rwandan lifestyle
+            </p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {['Shoes', 'Clothes', 'Accessories'].map((category) => (
-              <Link
-                key={category}
-                to={`/products?category=${category}`}
-                className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+            {categories.map((category, index) => (
+              <Card 
+                key={index} 
+                onClick={() => handleCategoryClick(category.name)}
+                className="group hover:shadow-2xl transition-all duration-500 cursor-pointer border-0 bg-white/80 backdrop-blur-sm overflow-hidden transform hover:-translate-y-2 animate-fade-in"
+                style={{ animationDelay: `${index * 150}ms` }}
               >
-                <div className="aspect-[4/3] bg-gradient-to-br from-purple-400 to-pink-400">
-                  <div className="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-30 transition-all duration-300"></div>
-                  <div className="absolute bottom-6 left-6 text-white">
-                    <h3 className="text-2xl font-bold mb-2">{category}</h3>
-                    <p className="opacity-90">Discover our latest collection</p>
+                <div className="relative h-48 overflow-hidden">
+                  <img 
+                    src={category.bgImage} 
+                    alt={category.name}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    onError={(e) => {
+                      // Fallback images if the dynamic ones fail
+                      const fallbackImages = {
+                        'Shoes': 'https://images.unsplash.com/photo-1542296636-e39e98198c94?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+                        'Clothes': 'https://images.unsplash.com/photo-1592078615290-0afee58c2ca9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1964&q=80',
+                        'Accessories': 'https://images.unsplash.com/photo-1547658719-19c95eadc5df?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'
+                      };
+                      (e.target as HTMLImageElement).src = fallbackImages[category.name as keyof typeof fallbackImages];
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+                  <div className="absolute top-4 right-4">
+                    <Badge className={`${category.color} font-semibold shadow-lg`}>
+                      {category.count} items
+                    </Badge>
                   </div>
                 </div>
-              </Link>
+                <CardContent className="p-6 relative">
+                  <div className="mb-4">
+                    <h4 className="text-2xl font-bold text-slate-800 mb-2 group-hover:text-violet-600 transition-colors duration-300">
+                      {category.name}
+                    </h4>
+                    <p className="text-slate-600 text-sm leading-relaxed">
+                      {category.description}
+                    </p>
+                  </div>
+                  <Button 
+                    className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-lg transform transition-all duration-300 group-hover:shadow-lg"
+                  >
+                    Explore {category.name}
+                  </Button>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Featured Products - 2x4 Grid */}
-      <section className="py-16">
+      {/* Featured Products */}
+      <section className="py-20 bg-gradient-to-br from-slate-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Featured Products</h2>
-            <p className="text-gray-600">Handpicked items just for you</p>
+          <div className="flex justify-between items-center mb-12 animate-fade-in">
+            <div>
+              <h3 className="text-4xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                Featured Products
+              </h3>
+              <p className="text-slate-600">Handpicked items just for you</p>
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={handleShopNowClick}
+              className="border-violet-200 text-violet-600 hover:bg-violet-50 font-semibold transform hover:scale-105 transition-all duration-300"
+            >
+              View All
+            </Button>
           </div>
           
           {loading ? (
@@ -191,118 +311,177 @@ const Index = () => {
               ))}
             </div>
           ) : (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {displayedProducts.map((product) => (
-                  <Card 
-                    key={product._id} 
-                    className="group hover:shadow-xl transition-all duration-500 cursor-pointer"
-                    onClick={() => handleProductClick(product)}
-                  >
-                    <CardContent className="p-0">
-                      <div className="relative overflow-hidden">
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = '/placeholder.svg';
-                          }}
-                        />
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className={`absolute top-2 right-2 bg-white/90 hover:bg-white ${
-                            favorites.includes(product._id) ? 'text-red-500' : 'text-gray-500'
-                          }`}
-                          onClick={(e) => handleToggleFavorite(product._id, e)}
-                        >
-                          <Heart className={`h-4 w-4 ${favorites.includes(product._id) ? 'fill-current' : ''}`} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredProducts.length > 0 ? featuredProducts.slice(0, 8).map((product, index) => (
+                <Card 
+                  key={product._id} 
+                  className="group hover:shadow-xl transition-all duration-500 cursor-pointer border-0 bg-white transform hover:-translate-y-1 animate-fade-in"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <CardContent className="p-0">
+                    <div className="relative overflow-hidden">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      {product.discount && (
+                        <Badge className="absolute top-2 left-2 bg-gradient-to-r from-red-500 to-red-600 text-white animate-pulse">
+                          {product.discount}
+                        </Badge>
+                      )}
+                      {product.isNew && (
+                        <Badge className="absolute top-2 left-2 bg-gradient-to-r from-green-500 to-green-600 text-white animate-pulse">
+                          New
+                        </Badge>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="absolute top-2 right-2 bg-white/90 hover:bg-white transform hover:scale-110 transition-all duration-300"
+                      >
+                        <Heart className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="p-4">
+                      <Badge variant="secondary" className="mb-2 bg-violet-100 text-violet-800">
+                        {product.category}
+                      </Badge>
+                      <h4 className="font-semibold mb-2 text-slate-800 group-hover:text-violet-600 transition-colors duration-300">
+                        {product.name}
+                      </h4>
+                      <div className="flex items-center mb-2">
+                        <div className="flex items-center">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span className="text-sm text-slate-600 ml-1">{product.rating}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-lg font-bold text-slate-800">RWF {product.price.toLocaleString()}</span>
+                          {product.originalPrice && (
+                            <span className="text-sm text-slate-500 line-through ml-2">
+                              RWF {product.originalPrice.toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+                        <Button size="sm" className="bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 transform hover:scale-105 transition-all duration-300">
+                          Add to Cart
                         </Button>
                       </div>
-                      <div className="p-4">
-                        <Badge variant="secondary" className="mb-2">
-                          {product.category}
-                        </Badge>
-                        <h4 className="font-semibold mb-2 group-hover:text-violet-600 transition-colors">
-                          {product.name}
-                        </h4>
-                        <div className="flex items-center mb-2">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm text-gray-600 ml-1">
-                            {product.rating} ({product.numReviews})
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-lg font-bold">RWF {product.price.toLocaleString()}</span>
-                            {product.originalPrice && (
-                              <span className="text-sm text-gray-500 line-through ml-2">
-                                RWF {product.originalPrice.toLocaleString()}
-                              </span>
-                            )}
-                          </div>
-                          <Button 
-                            size="sm" 
-                            className="bg-violet-600 hover:bg-violet-700"
-                            onClick={(e) => handleAddToCart(product._id, e)}
-                            disabled={product.countInStock === 0}
-                          >
-                            <ShoppingCart className="h-4 w-4 mr-1" />
-                            Add
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              {/* View More/Less Button */}
-              {featuredProducts.length > 8 && (
-                <div className="text-center mt-8">
-                  <Button
-                    onClick={handleViewMore}
-                    variant="outline"
-                    className="border-violet-600 text-violet-600 hover:bg-violet-600 hover:text-white"
-                  >
-                    {showAll ? 'View Less' : `View More (${featuredProducts.length - 8} more products)`}
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )) : (
+                <div className="col-span-full text-center py-8">
+                  <p className="text-gray-500">No featured products available</p>
                 </div>
               )}
-            </>
+            </div>
+          )}
+          
+          {/* Show pagination or "View More" if there are more than 8 featured products */}
+          {featuredProducts.length > 8 && (
+            <div className="text-center mt-8">
+              <Button 
+                onClick={handleShopNowClick}
+                className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-8 py-3 font-semibold transform hover:scale-105 transition-all duration-300"
+              >
+                View All Featured Products ({featuredProducts.length})
+              </Button>
+            </div>
           )}
         </div>
       </section>
 
-      {/* Newsletter Section */}
-      <section className="py-16 bg-gradient-to-r from-violet-600 to-purple-600 text-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">Stay in Style</h2>
-          <p className="text-xl mb-8 opacity-90">
-            Subscribe to our newsletter for the latest trends and exclusive offers
+      {/* Newsletter CTA Section */}
+      <section className="py-20 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white relative overflow-hidden">
+        <div className="absolute inset-0 opacity-30" style={{
+          backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.1\'%3E%3Ccircle cx=\'30\' cy=\'30\' r=\'2\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'
+        }}></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <h3 className="text-4xl font-bold mb-4 animate-fade-in">Join Our Fashion Community</h3>
+          <p className="text-xl mb-8 opacity-90 animate-fade-in" style={{ animationDelay: "200ms" }}>
+            Get exclusive deals and be the first to know about new arrivals
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+          <form 
+            onSubmit={handleNewsletterSubscribe}
+            className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto animate-fade-in" 
+            style={{ animationDelay: "400ms" }}
+          >
             <input
               type="email"
               placeholder="Enter your email"
-              className="flex-1 px-4 py-3 rounded-lg text-gray-900"
+              value={newsletterEmail}
+              onChange={(e) => setNewsletterEmail(e.target.value)}
+              className="flex-1 px-4 py-3 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-300"
+              required
+              disabled={subscribing}
             />
-            <Button className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-3">
-              Subscribe
+            <Button 
+              type="submit"
+              size="lg" 
+              disabled={subscribing}
+              className="bg-white text-violet-600 hover:bg-slate-100 px-8 font-semibold transform hover:scale-105 transition-all duration-300"
+            >
+              {subscribing ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-violet-600 border-t-transparent mr-2"></div>
+                  Subscribing...
+                </div>
+              ) : (
+                'Subscribe'
+              )}
             </Button>
-          </div>
+          </form>
         </div>
       </section>
 
-      {/* Product Modal */}
-      <ProductModal
-        product={selectedProduct}
-        isOpen={showProductModal}
-        onClose={() => setShowProductModal(false)}
-      />
+      {/* Footer */}
+      <footer className="bg-slate-900 text-white py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="animate-fade-in">
+              <h4 className="text-lg font-semibold mb-4 bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">
+                RwandaStyle
+              </h4>
+              <p className="text-slate-300">
+                Your trusted fashion destination in Rwanda. Quality products, affordable prices.
+              </p>
+            </div>
+            <div className="animate-fade-in" style={{ animationDelay: "150ms" }}>
+              <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
+              <ul className="space-y-2 text-slate-300">
+                <li><Link to="/" className="hover:text-violet-400 transition-colors duration-300">Home</Link></li>
+                <li><button onClick={() => handleCategoryClick('Shoes')} className="hover:text-violet-400 transition-colors duration-300">Shoes</button></li>
+                <li><button onClick={() => handleCategoryClick('Clothes')} className="hover:text-violet-400 transition-colors duration-300">Clothes</button></li>
+                <li><button onClick={() => handleCategoryClick('Accessories')} className="hover:text-violet-400 transition-colors duration-300">Accessories</button></li>
+              </ul>
+            </div>
+            <div className="animate-fade-in" style={{ animationDelay: "300ms" }}>
+              <h4 className="text-lg font-semibold mb-4">Customer Service</h4>
+              <ul className="space-y-2 text-slate-300">
+                <li><Link to="/contact" className="hover:text-violet-400 transition-colors duration-300">Contact Us</Link></li>
+                <li><Link to="/shipping" className="hover:text-violet-400 transition-colors duration-300">Shipping Info</Link></li>
+                <li><Link to="/returns" className="hover:text-violet-400 transition-colors duration-300">Returns</Link></li>
+                <li><Link to="/size-guide" className="hover:text-violet-400 transition-colors duration-300">Size Guide</Link></li>
+              </ul>
+            </div>
+            <div className="animate-fade-in" style={{ animationDelay: "450ms" }}>
+              <h4 className="text-lg font-semibold mb-4">Payment Methods</h4>
+              <p className="text-slate-300 mb-2">We accept:</p>
+              <div className="flex flex-wrap gap-2">
+                <Badge className="bg-gradient-to-r from-yellow-500 to-yellow-600">MTN Mobile Money</Badge>
+                <Badge className="bg-gradient-to-r from-red-500 to-red-600">Airtel Money</Badge>
+                <Badge className="bg-gradient-to-r from-blue-500 to-blue-600">Visa/MasterCard</Badge>
+              </div>
+            </div>
+          </div>
+          <div className="border-t border-slate-700 mt-8 pt-8 text-center text-slate-300">
+            <p>&copy; 2024 RwandaStyle. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
