@@ -32,6 +32,19 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  cart: [{
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product',
+      required: true
+    },
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1,
+      default: 1
+    }
+  }],
   notifications: [{
     title: {
       type: String,

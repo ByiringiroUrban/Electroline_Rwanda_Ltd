@@ -27,6 +27,8 @@ export const addToCart = async (req, res) => {
     }
 
     await user.save();
+    
+    // Populate the cart after saving
     await user.populate('cart.product');
 
     sendResponse(res, 200, true, user.cart);
@@ -39,7 +41,7 @@ export const addToCart = async (req, res) => {
 export const getCart = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate('cart.product');
-    sendResponse(res, 200, true, user.cart);
+    sendResponse(res, 200, true, user.cart || []);
   } catch (error) {
     console.error('Get cart error:', error);
     sendResponse(res, 500, false, error.message);
@@ -60,6 +62,8 @@ export const updateCartItem = async (req, res) => {
 
     cartItem.quantity = quantity;
     await user.save();
+    
+    // Populate the cart after saving
     await user.populate('cart.product');
 
     sendResponse(res, 200, true, user.cart);
@@ -78,6 +82,8 @@ export const removeFromCart = async (req, res) => {
     user.cart = user.cart.filter(item => item.product.toString() !== productId);
     
     await user.save();
+    
+    // Populate the cart after saving
     await user.populate('cart.product');
 
     sendResponse(res, 200, true, user.cart);
