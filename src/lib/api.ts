@@ -1,3 +1,4 @@
+
 const API_BASE_URL = 'http://localhost:5000/api';
 
 // Get auth token from localStorage
@@ -25,21 +26,39 @@ const createHeaders = (includeAuth = false) => {
 const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
   
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      ...createHeaders(options.headers?.['Authorization'] !== undefined),
-      ...options.headers,
-    },
-  });
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...createHeaders(options.headers?.['Authorization'] !== undefined),
+        ...options.headers,
+      },
+    });
 
-  const data = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(data.message || 'An error occurred');
+    const data = await response.json();
+    
+    if (!response.ok) {
+      // Handle auth errors specifically
+      if (response.status === 401) {
+        // Clear invalid token
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        // Redirect to login if needed
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+      }
+      throw new Error(data.message || 'An error occurred');
+    }
+    
+    return data;
+  } catch (error: any) {
+    // Handle network errors
+    if (!navigator.onLine) {
+      throw new Error('No internet connection');
+    }
+    throw error;
   }
-  
-  return data;
 };
 
 // Auth API

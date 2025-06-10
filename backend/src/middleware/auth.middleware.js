@@ -10,7 +10,24 @@ export const authenticate = async (req, res, next) => {
 
     if (!token) return sendResponse(res, 401, false, 'Access token is required');
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // Check if token is properly formatted (basic validation)
+    if (token.split('.').length !== 3) {
+      return sendResponse(res, 401, false, 'Invalid token format');
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (jwtError) {
+      if (jwtError.name === 'JsonWebTokenError') {
+        return sendResponse(res, 401, false, 'Invalid token');
+      } else if (jwtError.name === 'TokenExpiredError') {
+        return sendResponse(res, 401, false, 'Token expired');
+      } else {
+        return sendResponse(res, 401, false, 'Token verification failed');
+      }
+    }
+
     const user = await User.findById(decoded.userId).select('-password');
 
     if (!user) return sendResponse(res, 401, false, 'User no longer exists');
@@ -19,6 +36,6 @@ export const authenticate = async (req, res, next) => {
     next();
   } catch (err) {
     console.error('Auth middleware error:', err);
-    return sendResponse(res, 401, false, 'Not authorized');
+    return sendResponse(res, 401, false, 'Authentication failed');
   }
 };
