@@ -217,7 +217,7 @@ const Index = () => {
                 size="lg" 
                 variant="outline" 
                 onClick={handleViewCategoriesClick}
-                className="border-white text-white hover:bg-white hover:text-violet-600 px-8 py-3 text-lg font-semibold transform hover:scale-105 transition-all duration-300"
+                className="border-white text-violet-600 hover:bg-white hover:text-violet-600 px-8 py-3 text-lg font-semibold transform hover:scale-105 transition-all duration-300"
               >
                 View Categories
               </Button>
