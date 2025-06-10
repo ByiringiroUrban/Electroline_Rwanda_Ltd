@@ -44,13 +44,21 @@ const Index = () => {
   const fetchFeaturedProducts = async () => {
     try {
       setLoading(true);
+      console.log('Fetching featured products...');
       const response = await productsAPI.getFeatured();
-      if (response.success) {
+      console.log('Featured products response:', response);
+      
+      if (response.success && response.data) {
+        console.log('Featured products data:', response.data);
         setFeaturedProducts(response.data);
+      } else {
+        console.log('No featured products found or unsuccessful response');
+        setFeaturedProducts([]);
       }
     } catch (error: any) {
       console.error('Failed to fetch featured products:', error);
       toast.error('Failed to load featured products');
+      setFeaturedProducts([]);
     } finally {
       setLoading(false);
     }
@@ -310,85 +318,102 @@ const Index = () => {
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredProducts.length > 0 ? featuredProducts.slice(0, 8).map((product, index) => (
-                <Card 
-                  key={product._id} 
-                  className="group hover:shadow-xl transition-all duration-500 cursor-pointer border-0 bg-white transform hover:-translate-y-1 animate-fade-in"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <CardContent className="p-0">
-                    <div className="relative overflow-hidden">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      {product.discount && (
-                        <Badge className="absolute top-2 left-2 bg-gradient-to-r from-red-500 to-red-600 text-white animate-pulse">
-                          {product.discount}
-                        </Badge>
-                      )}
-                      {product.isNew && (
-                        <Badge className="absolute top-2 left-2 bg-gradient-to-r from-green-500 to-green-600 text-white animate-pulse">
-                          New
-                        </Badge>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="absolute top-2 right-2 bg-white/90 hover:bg-white transform hover:scale-110 transition-all duration-300"
-                      >
-                        <Heart className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <div className="p-4">
-                      <Badge variant="secondary" className="mb-2 bg-violet-100 text-violet-800">
-                        {product.category}
-                      </Badge>
-                      <h4 className="font-semibold mb-2 text-slate-800 group-hover:text-violet-600 transition-colors duration-300">
-                        {product.name}
-                      </h4>
-                      <div className="flex items-center mb-2">
-                        <div className="flex items-center">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm text-slate-600 ml-1">{product.rating}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="text-lg font-bold text-slate-800">RWF {product.price.toLocaleString()}</span>
-                          {product.originalPrice && (
-                            <span className="text-sm text-slate-500 line-through ml-2">
-                              RWF {product.originalPrice.toLocaleString()}
-                            </span>
-                          )}
-                        </div>
-                        <Button size="sm" className="bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 transform hover:scale-105 transition-all duration-300">
-                          Add to Cart
+          ) : featuredProducts.length > 0 ? (
+            <>
+              {/* Display 8 products in 2 rows of 4 columns */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {featuredProducts.slice(0, 8).map((product, index) => (
+                  <Card 
+                    key={product._id} 
+                    className="group hover:shadow-xl transition-all duration-500 cursor-pointer border-0 bg-white transform hover:-translate-y-1 animate-fade-in"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <CardContent className="p-0">
+                      <div className="relative overflow-hidden">
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
+                          onError={(e) => {
+                            console.error('Image failed to load:', product.image);
+                            (e.target as HTMLImageElement).src = '/placeholder.svg';
+                          }}
+                        />
+                        {product.discount && (
+                          <Badge className="absolute top-2 left-2 bg-gradient-to-r from-red-500 to-red-600 text-white animate-pulse">
+                            {product.discount}
+                          </Badge>
+                        )}
+                        {product.isNew && (
+                          <Badge className="absolute top-2 left-2 bg-gradient-to-r from-green-500 to-green-600 text-white animate-pulse">
+                            New
+                          </Badge>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="absolute top-2 right-2 bg-white/90 hover:bg-white transform hover:scale-110 transition-all duration-300"
+                        >
+                          <Heart className="h-4 w-4" />
                         </Button>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )) : (
-                <div className="col-span-full text-center py-8">
-                  <p className="text-gray-500">No featured products available</p>
+                      <div className="p-4">
+                        <Badge variant="secondary" className="mb-2 bg-violet-100 text-violet-800">
+                          {product.category}
+                        </Badge>
+                        <h4 className="font-semibold mb-2 text-slate-800 group-hover:text-violet-600 transition-colors duration-300">
+                          {product.name}
+                        </h4>
+                        <div className="flex items-center mb-2">
+                          <div className="flex items-center">
+                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                            <span className="text-sm text-slate-600 ml-1">{product.rating || 4.5}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-lg font-bold text-slate-800">RWF {product.price.toLocaleString()}</span>
+                            {product.originalPrice && (
+                              <span className="text-sm text-slate-500 line-through ml-2">
+                                RWF {product.originalPrice.toLocaleString()}
+                              </span>
+                            )}
+                          </div>
+                          <Button size="sm" className="bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 transform hover:scale-105 transition-all duration-300">
+                            Add to Cart
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              
+              {/* Show "View More" button if there are more than 8 featured products */}
+              {featuredProducts.length > 8 && (
+                <div className="text-center mt-8">
+                  <Button 
+                    onClick={handleShopNowClick}
+                    className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-8 py-3 font-semibold transform hover:scale-105 transition-all duration-300"
+                  >
+                    View All Featured Products ({featuredProducts.length})
+                  </Button>
                 </div>
               )}
-            </div>
-          )}
-          
-          {/* Show pagination or "View More" if there are more than 8 featured products */}
-          {featuredProducts.length > 8 && (
-            <div className="text-center mt-8">
-              <Button 
-                onClick={handleShopNowClick}
-                className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-8 py-3 font-semibold transform hover:scale-105 transition-all duration-300"
-              >
-                View All Featured Products ({featuredProducts.length})
-              </Button>
+            </>
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <div className="bg-white rounded-lg shadow-sm p-8">
+                <Heart className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-slate-600 mb-2">No Featured Products Available</h3>
+                <p className="text-slate-500 mb-4">Check back later for exciting featured products!</p>
+                <Button 
+                  onClick={handleShopNowClick}
+                  className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white"
+                >
+                  Browse All Products
+                </Button>
+              </div>
             </div>
           )}
         </div>

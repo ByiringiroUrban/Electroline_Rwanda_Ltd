@@ -17,7 +17,6 @@ const Header = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Debug logging
   useEffect(() => {
     console.log('Header: Auth state changed:', { user: !!user, loading, userName: user?.name });
   }, [user, loading]);
@@ -36,13 +35,25 @@ const Header = () => {
     navigate('/');
   };
 
-  // Don't render auth buttons while loading
+  const handleSearchClick = () => {
+    // Navigate to products page to enable search functionality
+    navigate('/products');
+  };
+
+  const handleCartClick = () => {
+    // For now, show a toast - this can be enhanced with cart drawer later
+    if (!user) {
+      toast.error('Please login to view cart');
+      return;
+    }
+    toast.info('Cart functionality coming soon!');
+  };
+
   if (loading) {
     return (
       <header className="bg-white shadow-sm border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            {/* Logo */}
             <Link to="/" className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-to-r from-violet-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">RS</span>
@@ -52,7 +63,6 @@ const Header = () => {
               </span>
             </Link>
             
-            {/* Loading placeholder */}
             <div className="hidden md:flex items-center space-x-4">
               <div className="animate-pulse bg-gray-200 h-8 w-16 rounded"></div>
             </div>
@@ -66,7 +76,6 @@ const Header = () => {
     <header className="bg-white shadow-sm border-b sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-to-r from-violet-600 to-purple-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">RS</span>
@@ -109,14 +118,23 @@ const Header = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost" size="sm">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={handleSearchClick}
+              className="hover:bg-violet-50 hover:text-violet-600"
+            >
               <Search className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={handleCartClick}
+              className="hover:bg-violet-50 hover:text-violet-600"
+            >
               <ShoppingCart className="h-4 w-4" />
             </Button>
             
-            {/* Notification Bell - only show for logged in users */}
             {user && <NotificationBell />}
             
             {user ? (
@@ -198,6 +216,23 @@ const Header = () => {
               >
                 Accessories
               </button>
+              
+              {/* Mobile Search and Cart */}
+              <button 
+                onClick={handleSearchClick}
+                className="text-left text-gray-700 hover:text-violet-600 font-medium py-2"
+              >
+                Search Products
+              </button>
+              {user && (
+                <button 
+                  onClick={handleCartClick}
+                  className="text-left text-gray-700 hover:text-violet-600 font-medium py-2"
+                >
+                  Shopping Cart
+                </button>
+              )}
+              
               {user ? (
                 <>
                   <Link to="/profile" className="text-gray-700 hover:text-violet-600 font-medium py-2">
