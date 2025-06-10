@@ -47,7 +47,10 @@ export const removeFromFavorites = async (req, res) => {
 export const getFavorites = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate('favorites');
-    sendResponse(res, 200, true, user.favorites);
+    if (!user) {
+      return sendResponse(res, 404, false, 'User not found');
+    }
+    sendResponse(res, 200, true, user.favorites || []);
   } catch (error) {
     console.error('Get favorites error:', error);
     sendResponse(res, 500, false, error.message);

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -73,14 +72,21 @@ const Products = () => {
   };
 
   const fetchFavorites = async () => {
-    if (!user) return;
+    if (!user) {
+      setFavorites([]);
+      return;
+    }
+    
     try {
       const response = await favoritesAPI.get();
       if (response.success) {
-        setFavorites(response.data.map((fav: any) => fav._id));
+        const favoriteIds = response.data.map((fav: any) => fav._id || fav);
+        setFavorites(favoriteIds);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch favorites:', error);
+      // Don't show error toast for favorites as it's not critical
+      setFavorites([]);
     }
   };
 
