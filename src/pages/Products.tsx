@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,9 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Star, Heart, Search, Filter } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
 import { productsAPI, favoritesAPI } from "@/lib/api";
 import { toast } from "sonner";
 import Header from "@/components/Header";
+import ProductModal from "@/components/ProductModal";
 
 interface Product {
   _id: string;
@@ -25,11 +26,13 @@ interface Product {
   featured: boolean;
   isNew: boolean;
   discount?: string;
+  countInStock: number;
 }
 
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
+  const { addToCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,6 +43,8 @@ const Products = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [hasNext, setHasNext] = useState(false);
   const [hasPrev, setHasPrev] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const categories = [
     { value: 'all', label: 'All Categories' },
@@ -165,6 +170,30 @@ const Products = () => {
     }
   };
 
+  const handleAddToCart = async (product: Product) => {
+    if (!user) {
+      toast.error('Please login to add items to cart');
+      return;
+    }
+
+    if (product.countInStock === 0) {
+      toast.error('Product is out of stock');
+      return;
+    }
+
+    await addToCart(product._id, 1);
+  };
+
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedProduct(null);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       <Header />
@@ -243,7 +272,7 @@ const Products = () => {
               {products.map((product) => (
                 <Card key={product._id} className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-0 bg-white">
                   <CardContent className="p-0">
-                    <div className="relative overflow-hidden">
+                    <div className="relative overflow-hidden" onClick={() => handleProductClick(product)}>
                       <img
                         src={product.image}
                         alt={product.name}
@@ -262,7 +291,10 @@ const Products = () => {
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => toggleFavorite(product._id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(product._id);
+                        }}
                         className={`absolute top-2 right-2 ${
                           favorites.includes(product._id)
                             ? 'bg-red-100 text-red-500 hover:bg-red-200'
@@ -297,8 +329,16 @@ const Products = () => {
                             </span>
                           )}
                         </div>
-                        <Button size="sm" className="bg-violet-600 hover:bg-violet-700">
-                          Add to Cart
+                        <Button 
+                          size="sm" 
+                          className="bg-violet-600 hover:bg-violet-700"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddToCart(product);
+                          }}
+                          disabled={product.countInStock === 0}
+                        >
+                          {product.countInStock === 0 ? 'Out of Stock' : 'Add to Cart'}
                         </Button>
                       </div>
                     </div>
@@ -358,6 +398,13 @@ const Products = () => {
           </div>
         )}
       </div>
+
+      {/* Product Modal */}
+      <ProductModal 
+        product={selectedProduct}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 };
