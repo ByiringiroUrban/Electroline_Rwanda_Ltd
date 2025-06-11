@@ -29,8 +29,15 @@ const CartDrawer = () => {
 
     setProcessing(true);
     try {
+      const validCartItems = cartItems.filter(item => item?.product?._id);
+      
+      if (validCartItems.length === 0) {
+        toast.error('No valid items in cart');
+        return;
+      }
+
       const orderData = {
-        orderItems: cartItems.map(item => ({
+        orderItems: validCartItems.map(item => ({
           product: item.product._id,
           name: item.product.name,
           image: item.product.image,
@@ -62,6 +69,9 @@ const CartDrawer = () => {
     }
   };
 
+  // Filter out invalid cart items
+  const validCartItems = cartItems.filter(item => item?.product?._id);
+
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -76,25 +86,29 @@ const CartDrawer = () => {
       </SheetTrigger>
       <SheetContent className="w-full sm:max-w-md">
         <SheetHeader>
-          <SheetTitle>Shopping Cart ({cartCount})</SheetTitle>
+          <SheetTitle>Shopping Cart ({validCartItems.length})</SheetTitle>
         </SheetHeader>
         
         <div className="mt-6 space-y-4">
-          {cartItems.length === 0 ? (
+          {validCartItems.length === 0 ? (
             <p className="text-center text-gray-500 py-8">Your cart is empty</p>
           ) : (
             <>
               <div className="space-y-3 max-h-60 overflow-y-auto">
-                {cartItems.map((item) => (
+                {validCartItems.map((item) => (
                   <div key={item.product._id} className="flex items-center space-x-3 p-3 border rounded-lg">
                     <img
-                      src={item.product.image}
-                      alt={item.product.name}
+                      src={item.product.image || '/placeholder.svg'}
+                      alt={item.product.name || 'Product'}
                       className="w-12 h-12 object-cover rounded"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = '/placeholder.svg';
+                      }}
                     />
                     <div className="flex-1">
-                      <h4 className="text-sm font-medium">{item.product.name}</h4>
-                      <p className="text-sm text-gray-500">RWF {item.product.price.toLocaleString()}</p>
+                      <h4 className="text-sm font-medium">{item.product.name || 'Unknown Product'}</h4>
+                      <p className="text-sm text-gray-500">RWF {(item.product.price || 0).toLocaleString()}</p>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button
