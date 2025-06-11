@@ -1,3 +1,4 @@
+
 const API_BASE_URL = 'https://rwandastyle.onrender.com/api';
 
 // Get auth token from localStorage
@@ -225,6 +226,21 @@ export const ordersAPI = {
       method: 'PUT',
       headers: { Authorization: `Bearer ${getAuthToken()}` },
       body: JSON.stringify({ status }),
+    });
+  },
+
+  // New methods for admin approval workflow
+  approveReception: async (id: string, approved: boolean, adminComments?: string) => {
+    return apiRequest(`/orders/${id}/approve`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+      body: JSON.stringify({ approved, adminComments }),
+    });
+  },
+
+  getPendingApproval: async () => {
+    return apiRequest('/orders/pending-approval', {
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
     });
   },
 };

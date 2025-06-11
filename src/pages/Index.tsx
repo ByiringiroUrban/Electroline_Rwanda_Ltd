@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star, Heart } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { productsAPI, newsletterAPI } from "@/lib/api";
+import { useCart } from "@/contexts/CartContext";
+import { productsAPI, newsletterAPI, favoritesAPI } from "@/lib/api";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 
@@ -23,6 +23,7 @@ interface Product {
   featured: boolean;
   isNew: boolean;
   discount?: string;
+  countInStock: number;
 }
 
 interface Category {
@@ -35,11 +36,14 @@ interface Category {
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { addToCart } = useCart();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [subscribing, setSubscribing] = useState(false);
+  const [favorites, setFavorites] = useState<string[]>([]);
 
   const fetchFeaturedProducts = async () => {
     try {
@@ -62,6 +66,59 @@ const Index = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchFavorites = async () => {
+    if (!user) {
+      setFavorites([]);
+      return;
+    }
+    
+    try {
+      const response = await favoritesAPI.get();
+      if (response.success) {
+        const favoriteIds = response.data.map((fav: any) => fav._id || fav);
+        setFavorites(favoriteIds);
+      }
+    } catch (error: any) {
+      console.error('Failed to fetch favorites:', error);
+      setFavorites([]);
+    }
+  };
+
+  const toggleFavorite = async (productId: string) => {
+    if (!user) {
+      toast.error('Please login to add favorites');
+      return;
+    }
+
+    try {
+      if (favorites.includes(productId)) {
+        await favoritesAPI.remove(productId);
+        setFavorites(prev => prev.filter(id => id !== productId));
+        toast.success('Removed from favorites');
+      } else {
+        await favoritesAPI.add(productId);
+        setFavorites(prev => [...prev, productId]);
+        toast.success('Added to favorites');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update favorites');
+    }
+  };
+
+  const handleAddToCart = async (product: Product) => {
+    if (!user) {
+      toast.error('Please login to add items to cart');
+      return;
+    }
+
+    if (product.countInStock === 0) {
+      toast.error('Product is out of stock');
+      return;
+    }
+
+    await addToCart(product._id, 1);
   };
 
   const fetchCategoryData = async () => {
@@ -135,7 +192,8 @@ const Index = () => {
   useEffect(() => {
     fetchFeaturedProducts();
     fetchCategoryData();
-  }, []);
+    fetchFavorites();
+  }, [user]);
 
   const handleShopNowClick = () => {
     navigate('/products');
@@ -352,9 +410,21 @@ const Index = () => {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="absolute top-2 right-2 bg-white/90 hover:bg-white transform hover:scale-110 transition-all duration-300"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(product._id);
+                          }}
+                          className={`absolute top-2 right-2 ${
+                            favorites.includes(product._id)
+                              ? 'bg-red-100 text-red-500 hover:bg-red-200'
+                              : 'bg-white/90 hover:bg-white'
+                          } transform hover:scale-110 transition-all duration-300`}
                         >
-                          <Heart className="h-4 w-4" />
+                          <Heart 
+                            className={`h-4 w-4 ${
+                              favorites.includes(product._id) ? 'fill-current' : ''
+                            }`} 
+                          />
                         </Button>
                       </div>
                       <div className="p-4">
@@ -379,8 +449,16 @@ const Index = () => {
                               </span>
                             )}
                           </div>
-                          <Button size="sm" className="bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 transform hover:scale-105 transition-all duration-300">
-                            Add to Cart
+                          <Button 
+                            size="sm" 
+                            className="bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 transform hover:scale-105 transition-all duration-300"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddToCart(product);
+                            }}
+                            disabled={product.countInStock === 0}
+                          >
+                            {product.countInStock === 0 ? 'Out of Stock' : 'Add to Cart'}
                           </Button>
                         </div>
                       </div>

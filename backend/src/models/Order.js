@@ -70,8 +70,28 @@ const orderSchema = new mongoose.Schema({
   status: {
     type: String,
     required: true,
-    enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
+    enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Received', 'Cancelled'],
     default: 'Pending'
+  },
+  // New fields for admin approval workflow
+  adminApprovalRequired: {
+    type: Boolean,
+    default: false
+  },
+  adminApprovalStatus: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending'
+  },
+  adminApprovedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  adminApprovedAt: {
+    type: Date
+  },
+  adminComments: {
+    type: String
   }
 }, {
   timestamps: true
