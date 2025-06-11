@@ -39,7 +39,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await cartAPI.get();
       if (response.success) {
-        setCartItems(response.data);
+        // Filter out items with invalid product data
+        const validCartItems = response.data.filter((item: any) => 
+          item && item.product && item.product._id && typeof item.product.price === 'number'
+        );
+        setCartItems(validCartItems);
       }
     } catch (error: any) {
       console.error('Failed to fetch cart:', error);
@@ -55,7 +59,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await cartAPI.add(productId, quantity);
       if (response.success) {
-        setCartItems(response.data);
+        // Filter out items with invalid product data
+        const validCartItems = response.data.filter((item: any) => 
+          item && item.product && item.product._id && typeof item.product.price === 'number'
+        );
+        setCartItems(validCartItems);
         toast.success('Item added to cart');
       }
     } catch (error: any) {
@@ -67,7 +75,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await cartAPI.update(productId, quantity);
       if (response.success) {
-        setCartItems(response.data);
+        // Filter out items with invalid product data
+        const validCartItems = response.data.filter((item: any) => 
+          item && item.product && item.product._id && typeof item.product.price === 'number'
+        );
+        setCartItems(validCartItems);
       }
     } catch (error: any) {
       toast.error(error.message || 'Failed to update cart');
@@ -78,7 +90,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await cartAPI.remove(productId);
       if (response.success) {
-        setCartItems(response.data);
+        // Filter out items with invalid product data
+        const validCartItems = response.data.filter((item: any) => 
+          item && item.product && item.product._id && typeof item.product.price === 'number'
+        );
+        setCartItems(validCartItems);
         toast.success('Item removed from cart');
       }
     } catch (error: any) {
@@ -87,7 +103,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const getTotalPrice = () => {
-    return cartItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+    return cartItems.reduce((total, item) => {
+      // Safety check to ensure item and product exist and have valid price
+      if (item && item.product && typeof item.product.price === 'number' && typeof item.quantity === 'number') {
+        return total + (item.product.price * item.quantity);
+      }
+      return total;
+    }, 0);
   };
 
   useEffect(() => {
