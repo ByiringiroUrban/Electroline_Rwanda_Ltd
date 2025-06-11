@@ -19,7 +19,6 @@ const Header = () => {
   const { cartCount } = useCart();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     console.log('Header: Auth state changed:', { user: !!user, loading, userName: user?.name });
@@ -42,14 +41,6 @@ const Header = () => {
   const handleSearchClick = () => {
     // Navigate to products page to enable search functionality
     navigate('/products');
-  };
-
-  const handleCartClick = () => {
-    if (!user) {
-      toast.error('Please login to view cart');
-      return;
-    }
-    setIsCartOpen(true);
   };
 
   if (loading) {
@@ -130,23 +121,8 @@ const Header = () => {
               >
                 <Search className="h-4 w-4" />
               </Button>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={handleCartClick}
-                className="hover:bg-violet-50 hover:text-violet-600 relative"
-              >
-                <ShoppingCart className="h-4 w-4" />
-                {user && cartCount > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-                  >
-                    {cartCount}
-                  </Badge>
-                )}
-              </Button>
               
+              {user && <CartDrawer />}
               {user && <NotificationBell />}
               
               {user ? (
@@ -237,17 +213,9 @@ const Header = () => {
                   Search Products
                 </button>
                 {user && (
-                  <button 
-                    onClick={handleCartClick}
-                    className="text-left text-gray-700 hover:text-violet-600 font-medium py-2 flex items-center"
-                  >
-                    Shopping Cart
-                    {cartCount > 0 && (
-                      <Badge variant="destructive" className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
-                        {cartCount}
-                      </Badge>
-                    )}
-                  </button>
+                  <div className="py-2">
+                    <CartDrawer />
+                  </div>
                 )}
                 
                 {user ? (
@@ -279,9 +247,6 @@ const Header = () => {
           )}
         </div>
       </header>
-
-      {/* Cart Drawer */}
-      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </>
   );
 };
