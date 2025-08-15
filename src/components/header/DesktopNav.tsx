@@ -13,22 +13,28 @@ const DesktopNav = ({ onCategoryClick, onShopNowClick }: DesktopNavProps) => {
         Home
       </Link>
       <button 
-        onClick={() => onCategoryClick('Shoes')}
-        className="text-gray-700 hover:text-violet-600 font-medium transition-colors"
+        onClick={() => onCategoryClick('CCTV Cameras & Security Systems')}
+        className="text-gray-700 hover:text-primary font-medium transition-colors"
       >
-        Shoes
+        CCTV & Security
       </button>
       <button 
-        onClick={() => onCategoryClick('Clothes')}
-        className="text-gray-700 hover:text-violet-600 font-medium transition-colors"
+        onClick={() => onCategoryClick('Electrical Installations & Maintenance')}
+        className="text-gray-700 hover:text-primary font-medium transition-colors"
       >
-        Clothes
+        Electrical Services
       </button>
       <button 
-        onClick={() => onCategoryClick('Accessories')}
-        className="text-gray-700 hover:text-violet-600 font-medium transition-colors"
+        onClick={() => onCategoryClick('Networking & Telecommunications')}
+        className="text-gray-700 hover:text-primary font-medium transition-colors"
       >
-        Accessories
+        Networking
+      </button>
+      <button 
+        onClick={() => onCategoryClick('IT Services & Consultancy')}
+        className="text-gray-700 hover:text-primary font-medium transition-colors"
+      >
+        IT Services
       </button>
       <button 
         onClick={onShopNowClick}

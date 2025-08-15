@@ -25,22 +25,28 @@ const MobileMenu = ({ isOpen, user, onCategoryClick, onSearchClick, onLogout }: 
           Home
         </Link>
         <button 
-          onClick={() => onCategoryClick('Shoes')}
-          className="text-left text-gray-700 hover:text-violet-600 font-medium py-2"
+          onClick={() => onCategoryClick('CCTV Cameras & Security Systems')}
+          className="text-left text-gray-700 hover:text-primary font-medium py-2"
         >
-          Shoes
+          CCTV & Security
         </button>
         <button 
-          onClick={() => onCategoryClick('Clothes')}
-          className="text-left text-gray-700 hover:text-violet-600 font-medium py-2"
+          onClick={() => onCategoryClick('Electrical Installations & Maintenance')}
+          className="text-left text-gray-700 hover:text-primary font-medium py-2"
         >
-          Clothes
+          Electrical Services
         </button>
         <button 
-          onClick={() => onCategoryClick('Accessories')}
-          className="text-left text-gray-700 hover:text-violet-600 font-medium py-2"
+          onClick={() => onCategoryClick('Networking & Telecommunications')}
+          className="text-left text-gray-700 hover:text-primary font-medium py-2"
         >
-          Accessories
+          Networking
+        </button>
+        <button 
+          onClick={() => onCategoryClick('IT Services & Consultancy')}
+          className="text-left text-gray-700 hover:text-primary font-medium py-2"
+        >
+          IT Services
         </button>
         
         <button 

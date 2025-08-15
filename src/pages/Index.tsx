@@ -4,6 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star, Heart } from "lucide-react";
+import cctvSecurityImg from "@/assets/cctv-security.jpg";
+import electricalServicesImg from "@/assets/electrical-services.jpg";
+import networkingTelecomImg from "@/assets/networking-telecom.jpg";
+import itServicesImg from "@/assets/it-services.jpg";
+import electronicComponentsImg from "@/assets/electronic-components.jpg";
+import electronicsHeroImg from "@/assets/electronics-hero.jpg";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { productsAPI, newsletterAPI, favoritesAPI } from "@/lib/api";
@@ -123,66 +129,86 @@ const Index = () => {
 
   const fetchCategoryData = async () => {
     try {
-      const [shoesRes, clothesRes, accessoriesRes] = await Promise.all([
-        productsAPI.getAll({ category: 'Shoes', limit: 1 }),
-        productsAPI.getAll({ category: 'Clothes', limit: 1 }),
-        productsAPI.getAll({ category: 'Accessories', limit: 1 })
+      const [cctvRes, electricalRes, networkingRes, itServicesRes, componentsRes] = await Promise.all([
+        productsAPI.getAll({ category: 'CCTV Cameras & Security Systems', limit: 1 }),
+        productsAPI.getAll({ category: 'Electrical Installations & Maintenance', limit: 1 }),
+        productsAPI.getAll({ category: 'Networking & Telecommunications', limit: 1 }),
+        productsAPI.getAll({ category: 'IT Services & Consultancy', limit: 1 }),
+        productsAPI.getAll({ category: 'Electronic Components & Tools', limit: 1 })
       ]);
 
       const dynamicCategories: Category[] = [
         {
-          name: 'Shoes',
-          description: 'Step into style with our diverse shoe collection.',
-          bgImage: shoesRes.success && shoesRes.data.products.length > 0 
-            ? shoesRes.data.products[0].image 
-            : 'https://images.unsplash.com/photo-1542296636-e39e98198c94?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+          name: 'CCTV Cameras & Security Systems',
+          description: 'Professional security cameras and surveillance systems.',
+          bgImage: cctvRes.success && cctvRes.data.products.length > 0 
+            ? cctvRes.data.products[0].image 
+            : cctvSecurityImg,
           color: 'bg-blue-100 text-blue-800',
-          count: shoesRes.success ? shoesRes.data.pagination.totalProducts : 0
+          count: cctvRes.success ? cctvRes.data.pagination.totalProducts : 0
         },
         {
-          name: 'Clothes',
-          description: 'Dress to impress with our trendy clothing line.',
-          bgImage: clothesRes.success && clothesRes.data.products.length > 0 
-            ? clothesRes.data.products[0].image 
-            : 'https://images.unsplash.com/photo-1592078615290-0afee58c2ca9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1964&q=80',
+          name: 'Electrical Installations & Maintenance',
+          description: 'Expert electrical installation and maintenance services.',
+          bgImage: electricalRes.success && electricalRes.data.products.length > 0 
+            ? electricalRes.data.products[0].image 
+            : electricalServicesImg,
           color: 'bg-green-100 text-green-800',
-          count: clothesRes.success ? clothesRes.data.pagination.totalProducts : 0
+          count: electricalRes.success ? electricalRes.data.pagination.totalProducts : 0
         },
         {
-          name: 'Accessories',
-          description: 'Complete your look with our unique accessories.',
-          bgImage: accessoriesRes.success && accessoriesRes.data.products.length > 0 
-            ? accessoriesRes.data.products[0].image 
-            : 'https://images.unsplash.com/photo-1547658719-19c95eadc5df?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
-          color: 'bg-yellow-100 text-yellow-800',
-          count: accessoriesRes.success ? accessoriesRes.data.pagination.totalProducts : 0
+          name: 'Networking & Telecommunications',
+          description: 'Network infrastructure and telecommunications solutions.',
+          bgImage: networkingRes.success && networkingRes.data.products.length > 0 
+            ? networkingRes.data.products[0].image 
+            : networkingTelecomImg,
+          color: 'bg-purple-100 text-purple-800',
+          count: networkingRes.success ? networkingRes.data.pagination.totalProducts : 0
+        },
+        {
+          name: 'IT Services & Consultancy',
+          description: 'Professional IT services and technology consulting.',
+          bgImage: itServicesRes.success && itServicesRes.data.products.length > 0 
+            ? itServicesRes.data.products[0].image 
+            : itServicesImg,
+          color: 'bg-indigo-100 text-indigo-800',
+          count: itServicesRes.success ? itServicesRes.data.pagination.totalProducts : 0
+        },
+        {
+          name: 'Electronic Components & Tools',
+          description: 'High-quality electronic components and testing tools.',
+          bgImage: componentsRes.success && componentsRes.data.products.length > 0 
+            ? componentsRes.data.products[0].image 
+            : electronicComponentsImg,
+          color: 'bg-orange-100 text-orange-800',
+          count: componentsRes.success ? componentsRes.data.pagination.totalProducts : 0
         }
       ];
 
-      setCategories(dynamicCategories);
+      setCategories(dynamicCategories.slice(0, 3)); // Show only first 3 on homepage
     } catch (error) {
       console.error('Failed to fetch category data:', error);
-      // Fallback to static data with high-quality images
+      // Fallback to static data with professional electronics images
       setCategories([
         {
-          name: 'Shoes',
-          description: 'Step into style with our diverse shoe collection.',
-          bgImage: 'https://images.unsplash.com/photo-1542296636-e39e98198c94?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+          name: 'CCTV Cameras & Security Systems',
+          description: 'Professional security cameras and surveillance systems.',
+          bgImage: cctvSecurityImg,
           color: 'bg-blue-100 text-blue-800',
           count: 0
         },
         {
-          name: 'Clothes',
-          description: 'Dress to impress with our trendy clothing line.',
-          bgImage: 'https://images.unsplash.com/photo-1592078615290-0afee58c2ca9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1964&q=80',
+          name: 'Electrical Installations & Maintenance',
+          description: 'Expert electrical installation and maintenance services.',
+          bgImage: electricalServicesImg,
           color: 'bg-green-100 text-green-800',
           count: 0
         },
         {
-          name: 'Accessories',
-          description: 'Complete your look with our unique accessories.',
-          bgImage: 'https://images.unsplash.com/photo-1547658719-19c95eadc5df?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
-          color: 'bg-yellow-100 text-yellow-800',
+          name: 'Networking & Telecommunications',
+          description: 'Network infrastructure and telecommunications solutions.',
+          bgImage: networkingTelecomImg,
+          color: 'bg-purple-100 text-purple-800',
           count: 0
         }
       ]);
@@ -237,12 +263,12 @@ const Index = () => {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white py-20 overflow-hidden">
+      <section className="relative bg-gradient-to-r from-primary via-blue-600 to-blue-800 text-white py-20 overflow-hidden">
         <div className="absolute inset-0 bg-black/20"></div>
         <div 
           className="absolute inset-0 bg-cover bg-center opacity-30"
           style={{
-            backgroundImage: 'url("https://images.unsplash.com/photo-1549298916-b41d501d3772?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80")'
+            backgroundImage: `url("${electronicsHeroImg}")`
           }}
         ></div>
         <div className="absolute inset-0 opacity-30" style={{
@@ -251,16 +277,16 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center animate-fade-in">
             <h2 className="text-4xl md:text-6xl font-bold mb-6 animate-scale-in">
-              Fashion for Every Rwandan
+              Electronics & Technical Solutions
             </h2>
             <p className="text-xl md:text-2xl mb-8 opacity-90">
-              Discover shoes, clothes & accessories that celebrate your style
+              Professional electronic equipment, security systems & technical services
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 size="lg" 
                 onClick={handleShopNowClick}
-                className="bg-white text-violet-600 hover:bg-slate-100 px-8 py-3 text-lg font-semibold transform hover:scale-105 transition-all duration-300 shadow-lg"
+                className="bg-white text-primary hover:bg-slate-100 px-8 py-3 text-lg font-semibold transform hover:scale-105 transition-all duration-300 shadow-lg"
               >
                 {loading ? (
                   <div className="flex items-center">
@@ -275,7 +301,7 @@ const Index = () => {
                 size="lg" 
                 variant="outline" 
                 onClick={handleViewCategoriesClick}
-                className="border-white text-violet-600 hover:bg-white hover:text-violet-600 px-8 py-3 text-lg font-semibold transform hover:scale-105 transition-all duration-300"
+                className="border-white text-primary hover:bg-white hover:text-primary px-8 py-3 text-lg font-semibold transform hover:scale-105 transition-all duration-300"
               >
                 View Categories
               </Button>
@@ -286,14 +312,14 @@ const Index = () => {
 
       {/* Categories Section */}
       <section className="py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-50/50 via-purple-50/30 to-indigo-50/50"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-slate-50/30 to-blue-50/50"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16 animate-fade-in">
-            <h3 className="text-4xl font-bold mb-4 bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+            <h3 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
               Shop by Category
             </h3>
             <p className="text-slate-600 text-lg max-w-2xl mx-auto">
-              Explore our curated collections designed for the modern Rwandan lifestyle
+              Professional electronics, security systems, and technical services
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -328,17 +354,21 @@ const Index = () => {
                 </div>
                 <CardContent className="p-6 relative">
                   <div className="mb-4">
-                    <h4 className="text-2xl font-bold text-slate-800 mb-2 group-hover:text-violet-600 transition-colors duration-300">
-                      {category.name}
+                    <h4 className="text-2xl font-bold text-slate-800 mb-2 group-hover:text-primary transition-colors duration-300">
+                      {category.name === 'CCTV Cameras & Security Systems' ? 'CCTV & Security' : 
+                       category.name === 'Electrical Installations & Maintenance' ? 'Electrical Services' :
+                       category.name === 'Networking & Telecommunications' ? 'Networking' : category.name}
                     </h4>
                     <p className="text-slate-600 text-sm leading-relaxed">
                       {category.description}
                     </p>
                   </div>
                   <Button 
-                    className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-lg transform transition-all duration-300 group-hover:shadow-lg"
+                    className="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-blue-700 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-lg transform transition-all duration-300 group-hover:shadow-lg"
                   >
-                    Explore {category.name}
+                    Explore {category.name === 'CCTV Cameras & Security Systems' ? 'CCTV & Security' : 
+                            category.name === 'Electrical Installations & Maintenance' ? 'Electrical Services' :
+                            category.name === 'Networking & Telecommunications' ? 'Networking' : category.name}
                   </Button>
                 </CardContent>
               </Card>
@@ -352,7 +382,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-12 animate-fade-in">
             <div>
-              <h3 className="text-4xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              <h3 className="text-4xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent mb-2">
                 Featured Products
               </h3>
               <p className="text-slate-600">Handpicked items just for you</p>
@@ -360,7 +390,7 @@ const Index = () => {
             <Button 
               variant="outline" 
               onClick={handleShopNowClick}
-              className="border-violet-200 text-violet-600 hover:bg-violet-50 font-semibold transform hover:scale-105 transition-all duration-300"
+              className="border-blue-200 text-primary hover:bg-blue-50 font-semibold transform hover:scale-105 transition-all duration-300"
             >
               View All
             </Button>

@@ -31,8 +31,8 @@ const productSchema = new mongoose.Schema({
   category: {
     type: String,
     required: [true, 'Product category is required'],
-    enum: ['Shoes', 'Clothes', 'Accessories'],
-    default: 'Clothes'
+    enum: ['CCTV Cameras & Security Systems', 'Electrical Installations & Maintenance', 'Networking & Telecommunications', 'IT Services & Consultancy', 'Technical Testing & Repair Services', 'Electronic Components & Tools'],
+    default: 'Electronic Components & Tools'
   },
   countInStock: { 
     type: Number, 
