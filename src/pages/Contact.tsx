@@ -96,7 +96,7 @@ const Contact = () => {
                   <Mail className="h-8 w-8 text-violet-600" />
                   <div>
                     <h3 className="font-semibold">Email</h3>
-                    <p className="text-slate-600">info@rwandastyle.com</p>
+                    <p className="text-slate-600">info@electrolinerwanda.com</p>
                   </div>
                 </div>
               </CardContent>

@@ -64,7 +64,7 @@ const Signup = () => {
       <div className="flex items-center justify-center px-4 py-12">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">Join RwandaStyle</CardTitle>
+            <CardTitle className="text-2xl font-bold">Join Electroline Rwanda Ltd.</CardTitle>
             <CardDescription>
               Create your account to start shopping
             </CardDescription>

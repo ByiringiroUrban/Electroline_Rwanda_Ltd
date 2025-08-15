@@ -49,8 +49,12 @@ const HeaderWithFeatures = () => {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-violet-600 to-purple-600 rounded-full"></div>
-              <span className="text-xl font-bold text-gray-900">RwandaStyle</span>
+              <img 
+                src="/lovable-uploads/5bbf9a34-bbbe-4f59-ba3a-3df875817a9e.png" 
+                alt="Electroline Rwanda Ltd Logo" 
+                className="w-8 h-8 object-contain"
+              />
+              <span className="text-xl font-bold text-gray-900">Electroline Rwanda Ltd.</span>
             </Link>
 
             {/* Navigation */}

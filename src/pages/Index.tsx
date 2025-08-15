@@ -545,8 +545,8 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="animate-fade-in">
-              <h4 className="text-lg font-semibold mb-4 bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">
-                RwandaStyle
+              <h4 className="text-lg font-semibold mb-4 bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+                Electroline Rwanda Ltd.
               </h4>
               <p className="text-slate-300">
                 Your trusted fashion destination in Rwanda. Quality products, affordable prices.
@@ -581,7 +581,7 @@ const Index = () => {
             </div>
           </div>
           <div className="border-t border-slate-700 mt-8 pt-8 text-center text-slate-300">
-            <p>&copy; 2024 RwandaStyle. All rights reserved.</p>
+            <p>&copy; 2024 Electroline Rwanda Ltd. All rights reserved.</p>
           </div>
         </div>
       </footer>
