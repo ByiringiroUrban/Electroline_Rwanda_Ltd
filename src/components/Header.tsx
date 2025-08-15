@@ -9,11 +9,29 @@ import DesktopNav from "@/components/header/DesktopNav";
 import UserMenu from "@/components/header/UserMenu";
 import HeaderActions from "@/components/header/HeaderActions";
 import MobileMenu from "@/components/header/MobileMenu";
+import SearchModal from "@/components/SearchModal";
+import ProductModal from "@/components/ProductModal";
+
+interface Product {
+  _id: string;
+  name: string;
+  price: number;
+  originalPrice?: number;
+  description: string;
+  image: string;
+  category: string;
+  rating: number;
+  numReviews: number;
+  countInStock: number;
+}
 
 const Header = () => {
   const { user, logout, loading } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 
   useEffect(() => {
     console.log('Header: Auth state changed:', { user: !!user, loading, userName: user?.name });
@@ -24,11 +42,22 @@ const Header = () => {
   };
 
   const handleCategoryClick = (category: string) => {
-    navigate(`/products?category=${category}`);
+    navigate(`/products?category=${encodeURIComponent(category)}`);
   };
 
   const handleSearchClick = () => {
-    navigate('/products');
+    setIsSearchModalOpen(true);
+  };
+
+  const handleSearchSubmit = (searchTerm: string) => {
+    navigate(`/products?search=${encodeURIComponent(searchTerm)}`);
+    setIsSearchModalOpen(false);
+  };
+
+  const handleProductSelect = (product: Product) => {
+    setSelectedProduct(product);
+    setIsProductModalOpen(true);
+    setIsSearchModalOpen(false);
   };
 
   if (loading) {
@@ -84,6 +113,21 @@ const Header = () => {
           onLogout={logout}
         />
       </div>
+
+      {/* Search Modal */}
+      <SearchModal 
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+        onProductSelect={handleProductSelect}
+        onSearchSubmit={handleSearchSubmit}
+      />
+
+      {/* Product Modal */}
+      <ProductModal 
+        product={selectedProduct}
+        isOpen={isProductModalOpen}
+        onClose={() => setIsProductModalOpen(false)}
+      />
     </header>
   );
 };

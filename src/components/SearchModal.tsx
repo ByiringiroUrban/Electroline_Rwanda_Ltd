@@ -19,9 +19,10 @@ interface SearchModalProps {
   isOpen: boolean;
   onClose: () => void;
   onProductSelect: (product: Product) => void;
+  onSearchSubmit: (searchTerm: string) => void;
 }
 
-const SearchModal = ({ isOpen, onClose, onProductSelect }: SearchModalProps) => {
+const SearchModal = ({ isOpen, onClose, onProductSelect, onSearchSubmit }: SearchModalProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
@@ -55,6 +56,13 @@ const SearchModal = ({ isOpen, onClose, onProductSelect }: SearchModalProps) => 
     onClose();
   };
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      onSearchSubmit(searchTerm.trim());
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -63,17 +71,19 @@ const SearchModal = ({ isOpen, onClose, onProductSelect }: SearchModalProps) => 
         </DialogHeader>
         
         <div className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              type="text"
-              placeholder="Search by name, category, or description..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-              autoFocus
-            />
-          </div>
+          <form onSubmit={handleSearchSubmit}>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                type="text"
+                placeholder="Search by name, category, or description..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+                autoFocus
+              />
+            </div>
+          </form>
 
           <div className="space-y-2">
             {loading && (

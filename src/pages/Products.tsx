@@ -48,9 +48,12 @@ const Products = () => {
 
   const categories = [
     { value: 'all', label: 'All Categories' },
-    { value: 'Shoes', label: 'Shoes' },
-    { value: 'Clothes', label: 'Clothes' },
-    { value: 'Accessories', label: 'Accessories' }
+    { value: 'CCTV Cameras & Security Systems', label: 'CCTV & Security' },
+    { value: 'Electrical Installations & Maintenance', label: 'Electrical Services' },
+    { value: 'Networking & Telecommunications', label: 'Networking' },
+    { value: 'IT Services & Consultancy', label: 'IT Services' },
+    { value: 'Electronic Components & Tools', label: 'Electronic Components' },
+    { value: 'Technical Testing & Repair Services', label: 'Technical Services' }
   ];
 
   const fetchProducts = async (page = 1) => {

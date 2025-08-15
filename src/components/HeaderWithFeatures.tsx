@@ -37,6 +37,11 @@ const HeaderWithFeatures = () => {
     setShowProductModal(true);
   };
 
+  const handleSearchSubmit = (searchTerm: string) => {
+    navigate(`/products?search=${encodeURIComponent(searchTerm)}`);
+    setShowSearch(false);
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -144,6 +149,7 @@ const HeaderWithFeatures = () => {
         isOpen={showSearch}
         onClose={() => setShowSearch(false)}
         onProductSelect={handleProductSelect}
+        onSearchSubmit={handleSearchSubmit}
       />
 
       {/* Product Modal */}
