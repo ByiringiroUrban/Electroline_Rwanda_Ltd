@@ -4,16 +4,20 @@ import sendResponse from '../utils/sendResponse.js';
 
 export const createProduct = async (req, res) => {
   try {
-    const { name, price, description, image, images, countInStock, category } = req.body;
+    const { name, price, originalPrice, description, image, images, countInStock, category, featured, isNew, discount } = req.body;
     
     const product = new Product({
       name,
       price,
+      originalPrice,
       description,
       image,
       images: images || [],
       countInStock,
-      category
+      category,
+      featured,
+      isNew,
+      discount
     });
 
     const savedProduct = await product.save();

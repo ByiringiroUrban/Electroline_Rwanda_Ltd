@@ -10,6 +10,7 @@ import CartDrawer from "./CartDrawer";
 import SearchModal from "./SearchModal";
 import ProductModal from "./ProductModal";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import DesktopNav from "@/components/header/DesktopNav";
 
 interface Product {
   _id: string;
@@ -63,23 +64,10 @@ const HeaderWithFeatures = () => {
             </Link>
 
             {/* Navigation */}
-            <nav className="hidden md:flex items-center space-x-8">
-              <Link to="/" className="text-gray-600 hover:text-violet-600 transition-colors">
-                Home
-              </Link>
-              <Link to="/products" className="text-gray-600 hover:text-violet-600 transition-colors">
-                All Products
-              </Link>
-              <Link to="/shoes" className="text-gray-600 hover:text-violet-600 transition-colors">
-                Shoes
-              </Link>
-              <Link to="/clothes" className="text-gray-600 hover:text-violet-600 transition-colors">
-                Clothes
-              </Link>
-              <Link to="/accessories" className="text-gray-600 hover:text-violet-600 transition-colors">
-                Accessories
-              </Link>
-            </nav>
+            <DesktopNav 
+              onCategoryClick={(category) => navigate(`/products?category=${encodeURIComponent(category)}`)}
+              onShopNowClick={() => navigate('/products')}
+            />
 
             {/* Actions */}
             <div className="flex items-center space-x-4">
