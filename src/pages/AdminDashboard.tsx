@@ -349,9 +349,12 @@ const AdminDashboard = () => {
                             <SelectValue placeholder="Select category" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Shoes">Shoes</SelectItem>
-                            <SelectItem value="Clothes">Clothes</SelectItem>
-                            <SelectItem value="Accessories">Accessories</SelectItem>
+                            <SelectItem value="CCTV Cameras & Security Systems">CCTV Cameras & Security Systems</SelectItem>
+                            <SelectItem value="Electrical Installations & Maintenance">Electrical Installations & Maintenance</SelectItem>
+                            <SelectItem value="Networking & Telecommunications">Networking & Telecommunications</SelectItem>
+                            <SelectItem value="IT Services & Consultancy">IT Services & Consultancy</SelectItem>
+                            <SelectItem value="Technical Testing & Repair Services">Technical Testing & Repair Services</SelectItem>
+                            <SelectItem value="Electronic Components & Tools">Electronic Components & Tools</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
