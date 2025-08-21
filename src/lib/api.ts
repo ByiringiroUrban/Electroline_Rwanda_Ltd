@@ -29,7 +29,7 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
   const response = await fetch(url, {
     ...options,
     headers: {
-      ...createHeaders(options.headers?.['Authorization'] !== undefined),
+      'Content-Type': 'application/json',
       ...options.headers,
     },
   });
@@ -84,7 +84,9 @@ export const productsAPI = {
   create: async (productData: any) => {
     return apiRequest('/products', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${getAuthToken()}` },
+      headers: { 
+        Authorization: `Bearer ${getAuthToken()}` 
+      },
       body: JSON.stringify(productData),
     });
   },
