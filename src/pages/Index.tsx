@@ -58,17 +58,37 @@ const Index = () => {
       const response = await productsAPI.getFeatured();
       console.log('Featured products response:', response);
       
-      if (response.success && response.data) {
+      if (response.success && Array.isArray(response.data) && response.data.length > 0) {
         console.log('Featured products data:', response.data);
         setFeaturedProducts(response.data);
       } else {
-        console.log('No featured products found or unsuccessful response');
-        setFeaturedProducts([]);
+        console.warn('Featured endpoint returned empty. Falling back to all products and filtering by featured flag.');
+        const allRes = await productsAPI.getAll({ limit: 24 });
+        if (allRes.success && allRes.data && Array.isArray(allRes.data.products)) {
+          const featured = allRes.data.products.filter((p: any) => p.featured === true);
+          if (featured.length > 0) {
+            setFeaturedProducts(featured.slice(0, 8));
+          } else {
+            console.warn('No featured products found in catalog. Showing latest products instead.');
+            setFeaturedProducts(allRes.data.products.slice(0, 8));
+          }
+        } else {
+          setFeaturedProducts([]);
+        }
       }
     } catch (error: any) {
       console.error('Failed to fetch featured products:', error);
-      toast.error('Failed to load featured products');
-      setFeaturedProducts([]);
+      // As a resilient fallback, try to show latest products so the grid is never empty
+      try {
+        const allRes = await productsAPI.getAll({ limit: 8 });
+        if (allRes.success && allRes.data && Array.isArray(allRes.data.products)) {
+          setFeaturedProducts(allRes.data.products);
+        } else {
+          setFeaturedProducts([]);
+        }
+      } catch {
+        setFeaturedProducts([]);
+      }
     } finally {
       setLoading(false);
     }
