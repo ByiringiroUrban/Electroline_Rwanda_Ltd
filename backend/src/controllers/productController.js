@@ -197,3 +197,41 @@ export const getFeaturedProducts = async (req, res) => {
     sendResponse(res, 500, false, error.message);
   }
 };
+
+// Fix existing invalid products immediately
+const fixInvalidProducts = async () => {
+  try {
+    const validCategories = [
+      'CCTV Cameras & Security Systems',
+      'Electrical Installations & Maintenance', 
+      'Networking & Telecommunications',
+      'IT Services & Consultancy',
+      'Technical Testing & Repair Services',
+      'Electronic Components & Tools'
+    ];
+
+    // Find and fix products with invalid categories
+    const invalidProducts = await Product.find({
+      category: { $nin: validCategories }
+    });
+
+    for (const product of invalidProducts) {
+      console.log(`🔧 Fixing product: ${product.name}, Invalid category: ${product.category}`);
+      await Product.findByIdAndUpdate(product._id, {
+        category: 'Electronic Components & Tools'
+      });
+      console.log(`✅ Updated to: Electronic Components & Tools`);
+    }
+
+    if (invalidProducts.length > 0) {
+      console.log(`🎉 Fixed ${invalidProducts.length} products with invalid categories`);
+    } else {
+      console.log('✅ All products have valid categories');
+    }
+  } catch (error) {
+    console.error('❌ Error fixing invalid products:', error);
+  }
+};
+
+// Run the fix immediately when this module loads
+fixInvalidProducts();
