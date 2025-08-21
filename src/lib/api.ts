@@ -82,6 +82,7 @@ export const productsAPI = {
   },
   
   create: async (productData: any) => {
+    console.log('Creating product with data:', productData);
     return apiRequest('/products', {
       method: 'POST',
       headers: { 
