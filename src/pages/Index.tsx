@@ -356,13 +356,15 @@ const Index = () => {
                     alt={category.name}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     onError={(e) => {
-                      // Fallback images if the dynamic ones fail
+                      // Fallback to default electronics images if the dynamic ones fail
                       const fallbackImages = {
-                        'Shoes': 'https://images.unsplash.com/photo-1542296636-e39e98198c94?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
-                        'Clothes': 'https://images.unsplash.com/photo-1592078615290-0afee58c2ca9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1964&q=80',
-                        'Accessories': 'https://images.unsplash.com/photo-1547658719-19c95eadc5df?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'
+                        'CCTV Cameras & Security Systems': cctvSecurityImg,
+                        'Electrical Installations & Maintenance': electricalServicesImg,
+                        'Networking & Telecommunications': networkingTelecomImg,
+                        'IT Services & Consultancy': itServicesImg,
+                        'Electronic Components & Tools': electronicComponentsImg
                       };
-                      (e.target as HTMLImageElement).src = fallbackImages[category.name as keyof typeof fallbackImages];
+                      (e.target as HTMLImageElement).src = fallbackImages[category.name as keyof typeof fallbackImages] || electronicComponentsImg;
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
@@ -599,16 +601,16 @@ const Index = () => {
                 Electroline Rwanda Ltd.
               </h4>
               <p className="text-slate-300">
-                Your trusted fashion destination in Rwanda. Quality products, affordable prices.
+                Your trusted electronics and technical solutions provider in Rwanda. Quality products, professional services.
               </p>
             </div>
             <div className="animate-fade-in" style={{ animationDelay: "150ms" }}>
               <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
               <ul className="space-y-2 text-slate-300">
                 <li><Link to="/" className="hover:text-violet-400 transition-colors duration-300">Home</Link></li>
-                <li><button onClick={() => handleCategoryClick('Shoes')} className="hover:text-violet-400 transition-colors duration-300">Shoes</button></li>
-                <li><button onClick={() => handleCategoryClick('Clothes')} className="hover:text-violet-400 transition-colors duration-300">Clothes</button></li>
-                <li><button onClick={() => handleCategoryClick('Accessories')} className="hover:text-violet-400 transition-colors duration-300">Accessories</button></li>
+                <li><button onClick={() => handleCategoryClick('CCTV Cameras & Security Systems')} className="hover:text-violet-400 transition-colors duration-300">CCTV & Security</button></li>
+                <li><button onClick={() => handleCategoryClick('Electrical Installations & Maintenance')} className="hover:text-violet-400 transition-colors duration-300">Electrical Services</button></li>
+                <li><button onClick={() => handleCategoryClick('Networking & Telecommunications')} className="hover:text-violet-400 transition-colors duration-300">Networking</button></li>
               </ul>
             </div>
             <div className="animate-fade-in" style={{ animationDelay: "300ms" }}>

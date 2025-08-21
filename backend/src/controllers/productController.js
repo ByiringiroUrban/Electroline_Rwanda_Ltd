@@ -36,8 +36,35 @@ export const getAllProducts = async (req, res) => {
     const { category, search, page = 1, limit = 12 } = req.query;
     const query = {};
     
+    // Only allow valid categories
+    const validCategories = [
+      'CCTV Cameras & Security Systems',
+      'Electrical Installations & Maintenance', 
+      'Networking & Telecommunications',
+      'IT Services & Consultancy',
+      'Technical Testing & Repair Services',
+      'Electronic Components & Tools'
+    ];
+    
     if (category) {
-      query.category = category;
+      if (validCategories.includes(category)) {
+        query.category = category;
+      } else {
+        // Return empty results for invalid categories
+        return sendResponse(res, 200, true, {
+          products: [],
+          pagination: {
+            currentPage: parseInt(page),
+            totalPages: 0,
+            totalProducts: 0,
+            hasNext: false,
+            hasPrev: false
+          }
+        });
+      }
+    } else {
+      // Only show products with valid categories
+      query.category = { $in: validCategories };
     }
     
     if (search) {
@@ -127,7 +154,21 @@ export const deleteProduct = async (req, res) => {
 
 export const getFeaturedProducts = async (req, res) => {
   try {
-    const products = await Product.find({ featured: true }).limit(8);
+    // Only get featured products with valid categories
+    const validCategories = [
+      'CCTV Cameras & Security Systems',
+      'Electrical Installations & Maintenance', 
+      'Networking & Telecommunications',
+      'IT Services & Consultancy',
+      'Technical Testing & Repair Services',
+      'Electronic Components & Tools'
+    ];
+    
+    const products = await Product.find({ 
+      featured: true,
+      category: { $in: validCategories }
+    }).limit(8);
+    
     sendResponse(res, 200, true, products);
   } catch (error) {
     console.error('Get featured products error:', error);
