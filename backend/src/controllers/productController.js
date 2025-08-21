@@ -1,5 +1,6 @@
 
 import Product from '../models/Product.js';
+import Category from '../models/Category.js';
 import sendResponse from '../utils/sendResponse.js';
 
 export const createProduct = async (req, res) => {
@@ -8,19 +9,11 @@ export const createProduct = async (req, res) => {
     
     const { name, price, originalPrice, description, image, images, countInStock, category, featured, isNew, discount } = req.body;
     
-    // Validate category explicitly before creating
-    const validCategories = [
-      'CCTV Cameras & Security Systems',
-      'Electrical Installations & Maintenance', 
-      'Networking & Telecommunications',
-      'IT Services & Consultancy',
-      'Technical Testing & Repair Services',
-      'Electronic Components & Tools'
-    ];
-    
-    if (!validCategories.includes(category)) {
+    // Validate category exists
+    const categoryExists = await Category.findById(category);
+    if (!categoryExists) {
       console.error('Invalid category provided:', category);
-      return sendResponse(res, 400, false, `Invalid category. Must be one of: ${validCategories.join(', ')}`);
+      return sendResponse(res, 400, false, 'Invalid category. Category does not exist.');
     }
     
     const product = new Product({
@@ -58,19 +51,17 @@ export const getAllProducts = async (req, res) => {
     const { category, search, page = 1, limit = 12 } = req.query;
     const query = {};
     
-    // Only allow valid categories
-    const validCategories = [
-      'CCTV Cameras & Security Systems',
-      'Electrical Installations & Maintenance', 
-      'Networking & Telecommunications',
-      'IT Services & Consultancy',
-      'Technical Testing & Repair Services',
-      'Electronic Components & Tools'
-    ];
-    
     if (category) {
-      if (validCategories.includes(category)) {
-        query.category = category;
+      // Check if category is passed as name or ID
+      let categoryDoc;
+      if (category.length === 24) { // Likely ObjectId
+        categoryDoc = await Category.findById(category);
+      } else {
+        categoryDoc = await Category.findOne({ name: category });
+      }
+      
+      if (categoryDoc) {
+        query.category = categoryDoc._id;
       } else {
         // Return empty results for invalid categories
         return sendResponse(res, 200, true, {
@@ -84,9 +75,6 @@ export const getAllProducts = async (req, res) => {
           }
         });
       }
-    } else {
-      // Only show products with valid categories
-      query.category = { $in: validCategories };
     }
     
     if (search) {
@@ -98,6 +86,7 @@ export const getAllProducts = async (req, res) => {
 
     const skip = (page - 1) * limit;
     const products = await Product.find(query)
+      .populate('category', 'name description color image')
       .skip(skip)
       .limit(parseInt(limit))
       .sort({ createdAt: -1 });
@@ -122,7 +111,7 @@ export const getAllProducts = async (req, res) => {
 
 export const getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id).populate('category', 'name description color image');
     if (!product) {
       return sendResponse(res, 404, false, 'Product not found');
     }
@@ -176,20 +165,11 @@ export const deleteProduct = async (req, res) => {
 
 export const getFeaturedProducts = async (req, res) => {
   try {
-    // Only get featured products with valid categories
-    const validCategories = [
-      'CCTV Cameras & Security Systems',
-      'Electrical Installations & Maintenance', 
-      'Networking & Telecommunications',
-      'IT Services & Consultancy',
-      'Technical Testing & Repair Services',
-      'Electronic Components & Tools'
-    ];
-    
     const products = await Product.find({ 
-      featured: true,
-      category: { $in: validCategories }
-    }).limit(8);
+      featured: true
+    })
+    .populate('category', 'name description color image')
+    .limit(8);
     
     sendResponse(res, 200, true, products);
   } catch (error) {
@@ -198,40 +178,3 @@ export const getFeaturedProducts = async (req, res) => {
   }
 };
 
-// Fix existing invalid products immediately
-const fixInvalidProducts = async () => {
-  try {
-    const validCategories = [
-      'CCTV Cameras & Security Systems',
-      'Electrical Installations & Maintenance', 
-      'Networking & Telecommunications',
-      'IT Services & Consultancy',
-      'Technical Testing & Repair Services',
-      'Electronic Components & Tools'
-    ];
-
-    // Find and fix products with invalid categories
-    const invalidProducts = await Product.find({
-      category: { $nin: validCategories }
-    });
-
-    for (const product of invalidProducts) {
-      console.log(`🔧 Fixing product: ${product.name}, Invalid category: ${product.category}`);
-      await Product.findByIdAndUpdate(product._id, {
-        category: 'Electronic Components & Tools'
-      });
-      console.log(`✅ Updated to: Electronic Components & Tools`);
-    }
-
-    if (invalidProducts.length > 0) {
-      console.log(`🎉 Fixed ${invalidProducts.length} products with invalid categories`);
-    } else {
-      console.log('✅ All products have valid categories');
-    }
-  } catch (error) {
-    console.error('❌ Error fixing invalid products:', error);
-  }
-};
-
-// Run the fix immediately when this module loads
-fixInvalidProducts();

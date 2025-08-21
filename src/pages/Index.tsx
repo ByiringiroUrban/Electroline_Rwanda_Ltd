@@ -12,7 +12,7 @@ import electronicComponentsImg from "@/assets/electronic-components.jpg";
 import electronicsHeroImg from "@/assets/electronics-hero.jpg";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
-import { productsAPI, newsletterAPI, favoritesAPI } from "@/lib/api";
+import { productsAPI, newsletterAPI, favoritesAPI, categoriesAPI } from "@/lib/api";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 
@@ -33,11 +33,13 @@ interface Product {
 }
 
 interface Category {
+  _id: string;
   name: string;
   description: string;
-  bgImage: string;
+  image: string;
   color: string;
-  count: number;
+  isActive: boolean;
+  count?: number;
 }
 
 const Index = () => {
@@ -149,89 +151,39 @@ const Index = () => {
 
   const fetchCategoryData = async () => {
     try {
-      const [cctvRes, electricalRes, networkingRes, itServicesRes, componentsRes] = await Promise.all([
-        productsAPI.getAll({ category: 'CCTV Cameras & Security Systems', limit: 1 }),
-        productsAPI.getAll({ category: 'Electrical Installations & Maintenance', limit: 1 }),
-        productsAPI.getAll({ category: 'Networking & Telecommunications', limit: 1 }),
-        productsAPI.getAll({ category: 'IT Services & Consultancy', limit: 1 }),
-        productsAPI.getAll({ category: 'Electronic Components & Tools', limit: 1 })
-      ]);
-
-      const dynamicCategories: Category[] = [
-        {
-          name: 'CCTV Cameras & Security Systems',
-          description: 'Professional security cameras and surveillance systems.',
-          bgImage: cctvRes.success && cctvRes.data.products.length > 0 
-            ? cctvRes.data.products[0].image 
-            : cctvSecurityImg,
-          color: 'bg-blue-100 text-blue-800',
-          count: cctvRes.success ? cctvRes.data.pagination.totalProducts : 0
-        },
-        {
-          name: 'Electrical Installations & Maintenance',
-          description: 'Expert electrical installation and maintenance services.',
-          bgImage: electricalRes.success && electricalRes.data.products.length > 0 
-            ? electricalRes.data.products[0].image 
-            : electricalServicesImg,
-          color: 'bg-green-100 text-green-800',
-          count: electricalRes.success ? electricalRes.data.pagination.totalProducts : 0
-        },
-        {
-          name: 'Networking & Telecommunications',
-          description: 'Network infrastructure and telecommunications solutions.',
-          bgImage: networkingRes.success && networkingRes.data.products.length > 0 
-            ? networkingRes.data.products[0].image 
-            : networkingTelecomImg,
-          color: 'bg-purple-100 text-purple-800',
-          count: networkingRes.success ? networkingRes.data.pagination.totalProducts : 0
-        },
-        {
-          name: 'IT Services & Consultancy',
-          description: 'Professional IT services and technology consulting.',
-          bgImage: itServicesRes.success && itServicesRes.data.products.length > 0 
-            ? itServicesRes.data.products[0].image 
-            : itServicesImg,
-          color: 'bg-indigo-100 text-indigo-800',
-          count: itServicesRes.success ? itServicesRes.data.pagination.totalProducts : 0
-        },
-        {
-          name: 'Electronic Components & Tools',
-          description: 'High-quality electronic components and testing tools.',
-          bgImage: componentsRes.success && componentsRes.data.products.length > 0 
-            ? componentsRes.data.products[0].image 
-            : electronicComponentsImg,
-          color: 'bg-orange-100 text-orange-800',
-          count: componentsRes.success ? componentsRes.data.pagination.totalProducts : 0
-        }
-      ];
-
-      setCategories(dynamicCategories.slice(0, 3)); // Show only first 3 on homepage
+      console.log('Fetching categories...');
+      const categoriesRes = await categoriesAPI.getAll();
+      
+      if (categoriesRes.success && Array.isArray(categoriesRes.data)) {
+        // Get product counts for each category
+        const categoriesWithCounts = await Promise.all(
+          categoriesRes.data.map(async (category: Category) => {
+            try {
+              const productsRes = await productsAPI.getAll({ category: category.name, limit: 1 });
+              return {
+                ...category,
+                count: productsRes.success ? productsRes.data.pagination.totalProducts : 0,
+                bgImage: category.image || electronicComponentsImg
+              };
+            } catch (error) {
+              console.error(`Error fetching products for category ${category.name}:`, error);
+              return {
+                ...category,
+                count: 0,
+                bgImage: category.image || electronicComponentsImg
+              };
+            }
+          })
+        );
+        
+        setCategories(categoriesWithCounts.slice(0, 3)); // Show first 3 on homepage
+      } else {
+        console.warn('No categories found, using empty array');
+        setCategories([]);
+      }
     } catch (error) {
-      console.error('Failed to fetch category data:', error);
-      // Fallback to static data with professional electronics images
-      setCategories([
-        {
-          name: 'CCTV Cameras & Security Systems',
-          description: 'Professional security cameras and surveillance systems.',
-          bgImage: cctvSecurityImg,
-          color: 'bg-blue-100 text-blue-800',
-          count: 0
-        },
-        {
-          name: 'Electrical Installations & Maintenance',
-          description: 'Expert electrical installation and maintenance services.',
-          bgImage: electricalServicesImg,
-          color: 'bg-green-100 text-green-800',
-          count: 0
-        },
-        {
-          name: 'Networking & Telecommunications',
-          description: 'Network infrastructure and telecommunications solutions.',
-          bgImage: networkingTelecomImg,
-          color: 'bg-purple-100 text-purple-800',
-          count: 0
-        }
-      ]);
+      console.error('Failed to fetch categories:', error);
+      setCategories([]);
     }
   };
 
@@ -352,34 +304,24 @@ const Index = () => {
               >
                 <div className="relative h-48 overflow-hidden">
                   <img 
-                    src={category.bgImage} 
+                    src={category.image} 
                     alt={category.name}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     onError={(e) => {
-                      // Fallback to default electronics images if the dynamic ones fail
-                      const fallbackImages = {
-                        'CCTV Cameras & Security Systems': cctvSecurityImg,
-                        'Electrical Installations & Maintenance': electricalServicesImg,
-                        'Networking & Telecommunications': networkingTelecomImg,
-                        'IT Services & Consultancy': itServicesImg,
-                        'Electronic Components & Tools': electronicComponentsImg
-                      };
-                      (e.target as HTMLImageElement).src = fallbackImages[category.name as keyof typeof fallbackImages] || electronicComponentsImg;
+                      (e.target as HTMLImageElement).src = electronicComponentsImg;
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
                   <div className="absolute top-4 right-4">
                     <Badge className={`${category.color} font-semibold shadow-lg`}>
-                      {category.count} items
+                      {category.count || 0} items
                     </Badge>
                   </div>
                 </div>
                 <CardContent className="p-6 relative">
                   <div className="mb-4">
                     <h4 className="text-2xl font-bold text-slate-800 mb-2 group-hover:text-primary transition-colors duration-300">
-                      {category.name === 'CCTV Cameras & Security Systems' ? 'CCTV & Security' : 
-                       category.name === 'Electrical Installations & Maintenance' ? 'Electrical Services' :
-                       category.name === 'Networking & Telecommunications' ? 'Networking' : category.name}
+                      {category.name}
                     </h4>
                     <p className="text-slate-600 text-sm leading-relaxed">
                       {category.description}
@@ -388,9 +330,7 @@ const Index = () => {
                   <Button 
                     className="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-blue-700 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-lg transform transition-all duration-300 group-hover:shadow-lg"
                   >
-                    Explore {category.name === 'CCTV Cameras & Security Systems' ? 'CCTV & Security' : 
-                            category.name === 'Electrical Installations & Maintenance' ? 'Electrical Services' :
-                            category.name === 'Networking & Telecommunications' ? 'Networking' : category.name}
+                    Explore {category.name}
                   </Button>
                 </CardContent>
               </Card>

@@ -271,7 +271,70 @@ export const newsletterAPI = {
   },
 };
 
-// User Notifications API
+// Categories API
+export const categoriesAPI = {
+  getAll: async (includeInactive = false) => {
+    try {
+      console.log('🌐 API Request: GET categories');
+      const searchParams = new URLSearchParams();
+      if (includeInactive) searchParams.append('includeInactive', 'true');
+      
+      const queryString = searchParams.toString();
+      const response = await apiRequest(`/categories${queryString ? `?${queryString}` : ''}`);
+      console.log('🌐 API Response: categories', response);
+      return response;
+    } catch (error) {
+      console.error('❌ Categories API Error:', error);
+      return { success: false, message: error.message };
+    }
+  },
+
+  create: async (categoryData: any) => {
+    try {
+      console.log('🌐 API Request: POST category', categoryData);
+      
+      return apiRequest('/categories', {
+        method: 'POST',
+        headers: { 
+          Authorization: `Bearer ${getAuthToken()}` 
+        },
+        body: JSON.stringify(categoryData),
+      });
+    } catch (error) {
+      console.error('❌ Create Category API Error:', error);
+      throw error;
+    }
+  },
+
+  update: async (id: string, categoryData: any) => {
+    try {
+      console.log('🌐 API Request: PUT category', id, categoryData);
+      
+      return apiRequest(`/categories/${id}`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${getAuthToken()}` },
+        body: JSON.stringify(categoryData),
+      });
+    } catch (error) {
+      console.error('❌ Update Category API Error:', error);
+      throw error;
+    }
+  },
+
+  delete: async (id: string) => {
+    try {
+      console.log('🌐 API Request: DELETE category', id);
+      
+      return apiRequest(`/categories/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${getAuthToken()}` },
+      });
+    } catch (error) {
+      console.error('❌ Delete Category API Error:', error);
+      throw error;
+    }
+  }
+};
 export const userNotificationsAPI = {
   get: async () => {
     return apiRequest('/user-notifications', {

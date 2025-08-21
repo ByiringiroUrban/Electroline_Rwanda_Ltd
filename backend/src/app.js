@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import authRoutes from './routes/auth.routes.js';
 import { productRoutes } from './routes/product.routes.js';
+import { categoryRoutes } from './routes/category.routes.js';
 import cartRoutes from './routes/cart.routes.js';
 import favoriteRoutes from './routes/favorite.routes.js';
 import orderRoutes from './routes/order.routes.js';
@@ -26,6 +27,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/categories', categoryRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/favorites', favoriteRoutes);
 app.use('/api/orders', orderRoutes);

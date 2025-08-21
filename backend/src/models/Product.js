@@ -29,13 +29,9 @@ const productSchema = new mongoose.Schema({
     default: []
   }],
   category: {
-    type: String,
-    required: [true, 'Product category is required'],
-    enum: {
-      values: ['CCTV Cameras & Security Systems', 'Electrical Installations & Maintenance', 'Networking & Telecommunications', 'IT Services & Consultancy', 'Technical Testing & Repair Services', 'Electronic Components & Tools'],
-      message: 'Category must be one of: CCTV Cameras & Security Systems, Electrical Installations & Maintenance, Networking & Telecommunications, IT Services & Consultancy, Technical Testing & Repair Services, Electronic Components & Tools'
-    },
-    default: 'Electronic Components & Tools'
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    required: [true, 'Product category is required']
   },
   countInStock: { 
     type: Number, 

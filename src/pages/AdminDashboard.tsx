@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Plus, Edit, Trash2, User, Package, ShoppingCart, Bell, Users } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { productsAPI, notificationsAPI, newsletterAPI, ordersAPI } from "@/lib/api";
+import { productsAPI, notificationsAPI, newsletterAPI, ordersAPI, categoriesAPI } from "@/lib/api";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import HeaderWithFeatures from "@/components/HeaderWithFeatures";
@@ -38,6 +38,15 @@ interface Notification {
   createdAt: string;
 }
 
+interface Category {
+  _id: string;
+  name: string;
+  description: string;
+  image: string;
+  color: string;
+  isActive: boolean;
+}
+
 interface Subscriber {
   _id: string;
   email: string;
@@ -49,6 +58,7 @@ const AdminDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
@@ -56,6 +66,8 @@ const AdminDashboard = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [showNotificationForm, setShowNotificationForm] = useState(false);
+  const [showCategoryForm, setShowCategoryForm] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -67,6 +79,13 @@ const AdminDashboard = () => {
     countInStock: '',
     featured: false,
     isNew: false
+  });
+
+  const [categoryData, setCategoryData] = useState({
+    name: '',
+    description: '',
+    image: '',
+    color: 'bg-blue-100 text-blue-800'
   });
 
   const [notificationData, setNotificationData] = useState({
@@ -87,17 +106,22 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [productsRes, notificationsRes, subscribersRes, ordersRes] = await Promise.all([
-        productsAPI.getAll({ limit: 1000 }), // Increased limit to see all products
+      const [productsRes, categoriesRes, notificationsRes, subscribersRes, ordersRes] = await Promise.all([
+        productsAPI.getAll({ limit: 1000 }),
+        categoriesAPI.getAll(true), // Include inactive categories for admin
         notificationsAPI.getAll(),
         newsletterAPI.getSubscribers(),
         ordersAPI.getMyOrders()
       ]);
 
-      console.log('API Responses:', { productsRes, notificationsRes, subscribersRes, ordersRes });
+      console.log('API Responses:', { productsRes, categoriesRes, notificationsRes, subscribersRes, ordersRes });
 
       if (productsRes.success) {
         setProducts(Array.isArray(productsRes.data.products) ? productsRes.data.products : []);
+      }
+      
+      if (categoriesRes.success) {
+        setCategories(Array.isArray(categoriesRes.data) ? categoriesRes.data : []);
       }
       
       if (notificationsRes.success) {
@@ -125,6 +149,7 @@ const AdminDashboard = () => {
       toast.error(error.message || 'Failed to fetch data');
       // Set default empty arrays on error
       setProducts([]);
+      setCategories([]);
       setNotifications([]);
       setSubscribers([]);
       setOrders([]);
@@ -237,6 +262,48 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingCategory) {
+        await categoriesAPI.update(editingCategory._id, categoryData);
+        toast.success('Category updated successfully!');
+      } else {
+        await categoriesAPI.create(categoryData);
+        toast.success('Category created successfully!');
+      }
+      setShowCategoryForm(false);
+      setEditingCategory(null);
+      setCategoryData({ name: '', description: '', image: '', color: 'bg-blue-100 text-blue-800' });
+      fetchData();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to save category');
+    }
+  };
+
+  const handleEditCategory = (category: Category) => {
+    setEditingCategory(category);
+    setCategoryData({
+      name: category.name,
+      description: category.description,
+      image: category.image,
+      color: category.color
+    });
+    setShowCategoryForm(true);
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this category?')) {
+      try {
+        await categoriesAPI.delete(id);
+        toast.success('Category deleted successfully!');
+        fetchData();
+      } catch (error: any) {
+        toast.error(error.message || 'Failed to delete category');
+      }
+    }
+  };
+
   if (!user?.isAdmin) {
     return null;
   }
@@ -292,8 +359,9 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="categories">Categories</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="subscribers">Subscribers</TabsTrigger>
@@ -349,12 +417,11 @@ const AdminDashboard = () => {
                             <SelectValue placeholder="Select category" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="CCTV Cameras & Security Systems">CCTV Cameras & Security Systems</SelectItem>
-                            <SelectItem value="Electrical Installations & Maintenance">Electrical Installations & Maintenance</SelectItem>
-                            <SelectItem value="Networking & Telecommunications">Networking & Telecommunications</SelectItem>
-                            <SelectItem value="IT Services & Consultancy">IT Services & Consultancy</SelectItem>
-                            <SelectItem value="Technical Testing & Repair Services">Technical Testing & Repair Services</SelectItem>
-                            <SelectItem value="Electronic Components & Tools">Electronic Components & Tools</SelectItem>
+                            {categories.map((category) => (
+                              <SelectItem key={category._id} value={category._id}>
+                                {category.name}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
@@ -499,6 +566,150 @@ const AdminDashboard = () => {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleDelete(product._id)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Categories Tab */}
+          <TabsContent value="categories">
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Category Management</CardTitle>
+                  <Button onClick={() => {
+                    setShowCategoryForm(true);
+                    setEditingCategory(null);
+                    setCategoryData({ name: '', description: '', image: '', color: 'bg-blue-100 text-blue-800' });
+                  }}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Category
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {showCategoryForm && (
+                  <form onSubmit={handleCreateCategory} className="mb-6 p-4 border rounded-lg bg-gray-50">
+                    <h3 className="text-lg font-semibold mb-4">
+                      {editingCategory ? 'Edit Category' : 'Add New Category'}
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="categoryName">Category Name</Label>
+                        <Input
+                          id="categoryName"
+                          value={categoryData.name}
+                          onChange={(e) => setCategoryData(prev => ({ ...prev, name: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="categoryColor">Color Class</Label>
+                        <Select value={categoryData.color} onValueChange={(value) => setCategoryData(prev => ({ ...prev, color: value }))}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select color" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="bg-blue-100 text-blue-800">Blue</SelectItem>
+                            <SelectItem value="bg-green-100 text-green-800">Green</SelectItem>
+                            <SelectItem value="bg-purple-100 text-purple-800">Purple</SelectItem>
+                            <SelectItem value="bg-orange-100 text-orange-800">Orange</SelectItem>
+                            <SelectItem value="bg-red-100 text-red-800">Red</SelectItem>
+                            <SelectItem value="bg-yellow-100 text-yellow-800">Yellow</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="categoryImage">Image URL</Label>
+                        <Input
+                          id="categoryImage"
+                          value={categoryData.image}
+                          onChange={(e) => setCategoryData(prev => ({ ...prev, image: e.target.value }))}
+                          placeholder="https://example.com/image.jpg"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label htmlFor="categoryDescription">Description</Label>
+                        <Textarea
+                          id="categoryDescription"
+                          value={categoryData.description}
+                          onChange={(e) => setCategoryData(prev => ({ ...prev, description: e.target.value }))}
+                          rows={3}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-4">
+                      <Button type="submit">
+                        {editingCategory ? 'Update Category' : 'Add Category'}
+                      </Button>
+                      <Button type="button" variant="outline" onClick={() => {
+                        setShowCategoryForm(false);
+                        setEditingCategory(null);
+                      }}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                )}
+
+                {loading ? (
+                  <div className="text-center py-8">Loading categories...</div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Image</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Color</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {categories.map((category) => (
+                        <TableRow key={category._id}>
+                          <TableCell>
+                            <img
+                              src={category.image || '/api/placeholder/50/50'}
+                              alt={category.name}
+                              className="w-12 h-12 object-cover rounded"
+                            />
+                          </TableCell>
+                          <TableCell>{category.name}</TableCell>
+                          <TableCell className="max-w-xs truncate">{category.description}</TableCell>
+                          <TableCell>
+                            <Badge className={category.color}>{category.color.split(' ')[0].replace('bg-', '')}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={category.isActive ? 'bg-green-500' : 'bg-gray-500'}>
+                              {category.isActive ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEditCategory(category)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleDeleteCategory(category._id)}
                                 className="text-red-600 hover:text-red-700"
                               >
                                 <Trash2 className="h-4 w-4" />
