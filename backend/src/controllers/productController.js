@@ -4,23 +4,26 @@ import sendResponse from '../utils/sendResponse.js';
 
 export const createProduct = async (req, res) => {
   try {
+    console.log('Creating product with data:', req.body);
+    
     const { name, price, originalPrice, description, image, images, countInStock, category, featured, isNew, discount } = req.body;
     
     const product = new Product({
       name,
-      price,
-      originalPrice,
+      price: parseFloat(price),
+      originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
       description,
       image,
       images: images || [],
-      countInStock,
+      countInStock: parseInt(countInStock) || 0,
       category,
-      featured,
-      isNew,
+      featured: Boolean(featured),
+      isNew: Boolean(isNew),
       discount
     });
 
     const savedProduct = await product.save();
+    console.log('Product created successfully:', savedProduct);
     sendResponse(res, 201, true, savedProduct);
   } catch (error) {
     console.error('Create product error:', error);
@@ -83,9 +86,18 @@ export const getProductById = async (req, res) => {
 
 export const updateProduct = async (req, res) => {
   try {
+    const updateData = { ...req.body };
+    
+    // Ensure proper data types
+    if (updateData.price) updateData.price = parseFloat(updateData.price);
+    if (updateData.originalPrice) updateData.originalPrice = parseFloat(updateData.originalPrice);
+    if (updateData.countInStock) updateData.countInStock = parseInt(updateData.countInStock);
+    if (updateData.featured !== undefined) updateData.featured = Boolean(updateData.featured);
+    if (updateData.isNew !== undefined) updateData.isNew = Boolean(updateData.isNew);
+    
     const product = await Product.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     );
     

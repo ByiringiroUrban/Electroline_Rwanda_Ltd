@@ -88,7 +88,7 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
       const [productsRes, notificationsRes, subscribersRes, ordersRes] = await Promise.all([
-        productsAPI.getAll({ limit: 100 }),
+        productsAPI.getAll({ limit: 1000 }), // Increased limit to see all products
         notificationsAPI.getAll(),
         newsletterAPI.getSubscribers(),
         ordersAPI.getMyOrders()
