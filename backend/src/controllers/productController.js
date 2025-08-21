@@ -8,6 +8,21 @@ export const createProduct = async (req, res) => {
     
     const { name, price, originalPrice, description, image, images, countInStock, category, featured, isNew, discount } = req.body;
     
+    // Validate category explicitly before creating
+    const validCategories = [
+      'CCTV Cameras & Security Systems',
+      'Electrical Installations & Maintenance', 
+      'Networking & Telecommunications',
+      'IT Services & Consultancy',
+      'Technical Testing & Repair Services',
+      'Electronic Components & Tools'
+    ];
+    
+    if (!validCategories.includes(category)) {
+      console.error('Invalid category provided:', category);
+      return sendResponse(res, 400, false, `Invalid category. Must be one of: ${validCategories.join(', ')}`);
+    }
+    
     const product = new Product({
       name,
       price: parseFloat(price),
@@ -27,6 +42,13 @@ export const createProduct = async (req, res) => {
     sendResponse(res, 201, true, savedProduct);
   } catch (error) {
     console.error('Create product error:', error);
+    
+    // Handle mongoose validation errors more clearly
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      return sendResponse(res, 400, false, `Validation failed: ${validationErrors.join(', ')}`);
+    }
+    
     sendResponse(res, 400, false, error.message);
   }
 };
