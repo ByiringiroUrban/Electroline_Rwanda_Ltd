@@ -169,7 +169,7 @@ export const getFeaturedProducts = async (req, res) => {
       featured: true
     })
     .populate('category', 'name description color image')
-    .limit(8);
+    .sort({ createdAt: -1 });
     
     sendResponse(res, 200, true, products);
   } catch (error) {
