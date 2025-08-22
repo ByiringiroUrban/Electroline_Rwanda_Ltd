@@ -23,7 +23,13 @@ interface Product {
   originalPrice?: number;
   description: string;
   image: string;
-  category: string;
+  category: {
+    _id: string;
+    name: string;
+    description: string;
+    image: string;
+    color: string;
+  };
   rating: number;
   numReviews: number;
   featured: boolean;
@@ -421,7 +427,7 @@ const Index = () => {
                       </div>
                       <div className="p-4">
                         <Badge variant="secondary" className="mb-2 bg-violet-100 text-violet-800">
-                          {product.category}
+                          {product.category?.name || 'Unknown'}
                         </Badge>
                         <h4 className="font-semibold mb-2 text-slate-800 group-hover:text-violet-600 transition-colors duration-300">
                           {product.name}
