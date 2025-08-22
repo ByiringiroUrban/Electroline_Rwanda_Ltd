@@ -23,7 +23,13 @@ interface Product {
   originalPrice?: number;
   description: string;
   image: string;
-  category: string;
+  category: {
+    _id: string;
+    name: string;
+    description: string;
+    image: string;
+    color: string;
+  };
   countInStock: number;
   featured: boolean;
   isNew: boolean;
@@ -217,7 +223,7 @@ const AdminDashboard = () => {
       originalPrice: product.originalPrice?.toString() || '',
       description: product.description,
       image: product.image,
-      category: product.category,
+      category: product.category?._id || '',
       countInStock: product.countInStock.toString(),
       featured: product.featured,
       isNew: product.isNew
@@ -543,7 +549,7 @@ const AdminDashboard = () => {
                           </TableCell>
                           <TableCell>{product.name}</TableCell>
                           <TableCell>
-                            <Badge variant="secondary">{product.category}</Badge>
+                            <Badge variant="secondary">{product.category?.name || 'Unknown'}</Badge>
                           </TableCell>
                           <TableCell>RWF {product.price.toLocaleString()}</TableCell>
                           <TableCell>{product.countInStock}</TableCell>

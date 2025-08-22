@@ -16,20 +16,15 @@ const DesktopNav = ({ onCategoryClick, onShopNowClick }: DesktopNavProps) => {
         onClick={() => onCategoryClick('CCTV Cameras & Security Systems')}
         className="text-gray-700 hover:text-primary font-medium transition-colors"
       >
-        CCTV & Security
+        Cameras
       </button>
       <button 
         onClick={() => onCategoryClick('Electrical Installations & Maintenance')}
         className="text-gray-700 hover:text-primary font-medium transition-colors"
       >
-        Electrical Services
+        Electrical
       </button>
-      <button 
-        onClick={() => onCategoryClick('Networking & Telecommunications')}
-        className="text-gray-700 hover:text-primary font-medium transition-colors"
-      >
-        Networking
-      </button>
+     
       <button 
         onClick={() => onCategoryClick('IT Services & Consultancy')}
         className="text-gray-700 hover:text-primary font-medium transition-colors"

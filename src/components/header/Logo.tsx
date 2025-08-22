@@ -10,7 +10,6 @@ const Logo = () => {
         className="w-8 h-8 object-contain"
       />
       <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
-        Electroline Rwanda Ltd.
       </span>
     </Link>
   );

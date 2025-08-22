@@ -1,5 +1,5 @@
 
-const API_BASE_URL = 'https://rwandastyle.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // Get auth token from localStorage
 const getAuthToken = () => {
