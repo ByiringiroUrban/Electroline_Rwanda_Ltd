@@ -1,3 +1,4 @@
+// productController.js
 
 import Product from '../models/Product.js';
 import Category from '../models/Category.js';
@@ -165,16 +166,30 @@ export const deleteProduct = async (req, res) => {
 
 export const getFeaturedProducts = async (req, res) => {
   try {
-    const products = await Product.find({ 
-      featured: true
-    })
-    .populate('category', 'name description color image')
-    .limit(8);
-    
-    sendResponse(res, 200, true, products);
+    const { page = 1, limit = 12 } = req.query;
+    const query = { featured: true };
+    const skip = (page - 1) * limit;
+
+    const featuredProducts = await Product.find(query)
+      .populate('category', 'name description color image')
+      .skip(skip)
+      .limit(parseInt(limit))
+      .sort({ createdAt: -1 });
+
+    const total = await Product.countDocuments(query);
+
+    sendResponse(res, 200, true, {
+      products: featuredProducts,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / limit),
+        totalProducts: total,
+        hasNext: page * limit < total,
+        hasPrev: page > 1,
+      },
+    });
   } catch (error) {
     console.error('Get featured products error:', error);
     sendResponse(res, 500, false, error.message);
   }
 };
-

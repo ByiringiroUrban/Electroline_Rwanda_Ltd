@@ -59,19 +59,10 @@ const Products = () => {
   const fetchProducts = async (page = 1) => {
     try {
       setLoading(true);
-      const params: any = {
-        page,
-        limit: 12,
-      };
+      const params: any = { page, limit: 12 };
 
-      if (searchTerm) {
-        params.search = searchTerm;
-      }
-
-      // Properly handle category filtering
-      if (selectedCategory && selectedCategory !== 'all') {
-        params.category = selectedCategory;
-      }
+      if (searchTerm) params.search = searchTerm;
+      if (selectedCategory && selectedCategory !== 'all') params.category = selectedCategory;
 
       console.log('Fetching products with params:', params);
       const response = await productsAPI.getAll(params);
@@ -96,7 +87,6 @@ const Products = () => {
       setFavorites([]);
       return;
     }
-    
     try {
       const response = await favoritesAPI.get();
       if (response.success) {
@@ -109,7 +99,6 @@ const Products = () => {
     }
   };
 
-  // Update URL params when filters change
   useEffect(() => {
     const params = new URLSearchParams();
     if (searchTerm) params.set('search', searchTerm);
@@ -117,23 +106,15 @@ const Products = () => {
     setSearchParams(params);
   }, [searchTerm, selectedCategory, setSearchParams]);
 
-  // Fetch products when filters change
   useEffect(() => {
     fetchProducts(1);
   }, [searchTerm, selectedCategory]);
 
-  // Initialize from URL params and fetch data
   useEffect(() => {
     const categoryFromUrl = searchParams.get('category');
     const searchFromUrl = searchParams.get('search');
-    
-    if (categoryFromUrl) {
-      setSelectedCategory(categoryFromUrl);
-    }
-    if (searchFromUrl) {
-      setSearchTerm(searchFromUrl);
-    }
-    
+    if (categoryFromUrl) setSelectedCategory(categoryFromUrl);
+    if (searchFromUrl) setSearchTerm(searchFromUrl);
     fetchFavorites();
   }, [user]);
 
@@ -157,7 +138,6 @@ const Products = () => {
       toast.error('Please login to add favorites');
       return;
     }
-
     try {
       if (favorites.includes(productId)) {
         await favoritesAPI.remove(productId);
@@ -178,12 +158,10 @@ const Products = () => {
       toast.error('Please login to add items to cart');
       return;
     }
-
     if (product.countInStock === 0) {
       toast.error('Product is out of stock');
       return;
     }
-
     await addToCart(product._id, 1);
   };
 
@@ -230,7 +208,7 @@ const Products = () => {
             </form>
 
             {/* Category Filter */}
-            <Select value={selectedCategory} onValueChange={handleCategoryChange}>
+            {/* <Select value={selectedCategory} onValueChange={handleCategoryChange}>
               <SelectTrigger className="w-full md:w-48">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
@@ -241,10 +219,10 @@ const Products = () => {
                   </SelectItem>
                 ))}
               </SelectContent>
-            </Select>
+            </Select> */}
 
             {/* Sort */}
-            <Select value={sortBy} onValueChange={setSortBy}>
+            {/* <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-full md:w-48">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
@@ -254,7 +232,7 @@ const Products = () => {
                 <SelectItem value="price-high">Price: High to Low</SelectItem>
                 <SelectItem value="rating">Highest Rated</SelectItem>
               </SelectContent>
-            </Select>
+            </Select> */}
           </div>
         </div>
 
@@ -281,7 +259,7 @@ const Products = () => {
                         alt={product.name}
                         className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
                       />
-                      {product.discount && (
+                      {typeof product.discount === "string" && (
                         <Badge className="absolute top-2 left-2 bg-red-500 text-white">
                           {product.discount}
                         </Badge>
@@ -313,7 +291,7 @@ const Products = () => {
                     </div>
                     <div className="p-4">
                       <Badge variant="secondary" className="mb-2">
-                        {product.category}
+                        {typeof product.category === "string" ? product.category : ""}
                       </Badge>
                       <h4 className="font-semibold mb-2">{product.name}</h4>
                       <div className="flex items-center mb-2">

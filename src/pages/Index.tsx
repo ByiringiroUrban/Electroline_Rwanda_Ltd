@@ -58,6 +58,8 @@ const Index = () => {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [subscribing, setSubscribing] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [productsPerPage] = useState(12);
 
   const fetchFeaturedProducts = async () => {
     try {
@@ -71,14 +73,14 @@ const Index = () => {
         setFeaturedProducts(response.data);
       } else {
         console.warn('Featured endpoint returned empty. Falling back to all products and filtering by featured flag.');
-        const allRes = await productsAPI.getAll({ limit: 24 });
+        const allRes = await productsAPI.getAll({ limit: 100 });
         if (allRes.success && allRes.data && Array.isArray(allRes.data.products)) {
           const featured = allRes.data.products.filter((p: any) => p.featured === true);
           if (featured.length > 0) {
-            setFeaturedProducts(featured.slice(0, 8));
+            setFeaturedProducts(featured);
           } else {
             console.warn('No featured products found in catalog. Showing latest products instead.');
-            setFeaturedProducts(allRes.data.products.slice(0, 8));
+            setFeaturedProducts(allRes.data.products);
           }
         } else {
           setFeaturedProducts([]);
@@ -88,7 +90,7 @@ const Index = () => {
       console.error('Failed to fetch featured products:', error);
       // As a resilient fallback, try to show latest products so the grid is never empty
       try {
-        const allRes = await productsAPI.getAll({ limit: 8 });
+        const allRes = await productsAPI.getAll({ limit: 100 });
         if (allRes.success && allRes.data && Array.isArray(allRes.data.products)) {
           setFeaturedProducts(allRes.data.products);
         } else {
@@ -364,9 +366,9 @@ const Index = () => {
             </Button>
           </div>
           
-          {loading ? (
+           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[...Array(8)].map((_, i) => (
+              {[...Array(12)].map((_, i) => (
                 <div key={i} className="animate-pulse">
                   <div className="bg-gray-200 h-48 rounded-lg mb-4"></div>
                   <div className="bg-gray-200 h-4 rounded mb-2"></div>
@@ -376,106 +378,138 @@ const Index = () => {
             </div>
           ) : featuredProducts.length > 0 ? (
             <>
-              {/* Display 8 products in 2 rows of 4 columns */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {featuredProducts.slice(0, 8).map((product, index) => (
-                  <Card 
-                    key={product._id} 
-                    className="group hover:shadow-xl transition-all duration-500 cursor-pointer border-0 bg-white transform hover:-translate-y-1 animate-fade-in"
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    <CardContent className="p-0">
-                      <div className="relative overflow-hidden">
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
-                          onError={(e) => {
-                            console.error('Image failed to load:', product.image);
-                            (e.target as HTMLImageElement).src = '/placeholder.svg';
-                          }}
-                        />
-                        {product.discount && (
-                          <Badge className="absolute top-2 left-2 bg-gradient-to-r from-red-500 to-red-600 text-white animate-pulse">
-                            {product.discount}
-                          </Badge>
-                        )}
-                        {product.isNew && (
-                          <Badge className="absolute top-2 left-2 bg-gradient-to-r from-green-500 to-green-600 text-white animate-pulse">
-                            New
-                          </Badge>
-                        )}
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleFavorite(product._id);
-                          }}
-                          className={`absolute top-2 right-2 ${
-                            favorites.includes(product._id)
-                              ? 'bg-red-100 text-red-500 hover:bg-red-200'
-                              : 'bg-white/90 hover:bg-white'
-                          } transform hover:scale-110 transition-all duration-300`}
+              {(() => {
+                const indexOfLastProduct = currentPage * productsPerPage;
+                const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+                const currentProducts = featuredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+                const totalPages = Math.ceil(featuredProducts.length / productsPerPage);
+
+                return (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                      {currentProducts.map((product, index) => (
+                        <Card 
+                          key={product._id} 
+                          className="group hover:shadow-xl transition-all duration-500 cursor-pointer border-0 bg-white transform hover:-translate-y-1 animate-fade-in"
+                          style={{ animationDelay: `${index * 100}ms` }}
                         >
-                          <Heart 
-                            className={`h-4 w-4 ${
-                              favorites.includes(product._id) ? 'fill-current' : ''
-                            }`} 
-                          />
+                          <CardContent className="p-0">
+                            <div className="relative overflow-hidden">
+                              <img
+                                src={product.image}
+                                alt={product.name}
+                                className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
+                                onError={(e) => {
+                                  console.error('Image failed to load:', product.image);
+                                  (e.target as HTMLImageElement).src = '/placeholder.svg';
+                                }}
+                              />
+                              {product.discount && (
+                                <Badge className="absolute top-2 left-2 bg-gradient-to-r from-red-500 to-red-600 text-white animate-pulse">
+                                  {product.discount}
+                                </Badge>
+                              )}
+                              {product.isNew && (
+                                <Badge className="absolute top-2 left-2 bg-gradient-to-r from-green-500 to-green-600 text-white animate-pulse">
+                                  New
+                                </Badge>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleFavorite(product._id);
+                                }}
+                                className={`absolute top-2 right-2 ${
+                                  favorites.includes(product._id)
+                                    ? 'bg-red-100 text-red-500 hover:bg-red-200'
+                                    : 'bg-white/90 hover:bg-white'
+                                } transform hover:scale-110 transition-all duration-300`}
+                              >
+                                <Heart 
+                                  className={`h-4 w-4 ${
+                                    favorites.includes(product._id) ? 'fill-current' : ''
+                                  }`} 
+                                />
+                              </Button>
+                            </div>
+                            <div className="p-4">
+                              <Badge variant="secondary" className="mb-2 bg-violet-100 text-violet-800">
+                                {product.category?.name || 'Unknown'}
+                              </Badge>
+                              <h4 className="font-semibold mb-2 text-slate-800 group-hover:text-violet-600 transition-colors duration-300">
+                                {product.name}
+                              </h4>
+                              <div className="flex items-center mb-2">
+                                <div className="flex items-center">
+                                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                  <span className="text-sm text-slate-600 ml-1">{product.rating || 4.5}</span>
+                                </div>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <span className="text-lg font-bold text-slate-800">RWF {product.price.toLocaleString()}</span>
+                                  {product.originalPrice && (
+                                    <span className="text-sm text-slate-500 line-through ml-2">
+                                      RWF {product.originalPrice.toLocaleString()}
+                                    </span>
+                                  )}
+                                </div>
+                                <Button 
+                                  size="sm" 
+                                  className="bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 transform hover:scale-105 transition-all duration-300"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddToCart(product);
+                                  }}
+                                  disabled={product.countInStock === 0}
+                                >
+                                  {product.countInStock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                    
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                      <div className="flex justify-center items-center space-x-2 mt-8">
+                        <Button
+                          variant="outline"
+                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                          disabled={currentPage === 1}
+                          className="px-4 py-2"
+                        >
+                          Previous
+                        </Button>
+                        
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                          <Button
+                            key={page}
+                            variant={currentPage === page ? "default" : "outline"}
+                            onClick={() => setCurrentPage(page)}
+                            className="px-3 py-2 min-w-[40px]"
+                          >
+                            {page}
+                          </Button>
+                        ))}
+                        
+                        <Button
+                          variant="outline"
+                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                          disabled={currentPage === totalPages}
+                          className="px-4 py-2"
+                        >
+                          Next
                         </Button>
                       </div>
-                      <div className="p-4">
-                        <Badge variant="secondary" className="mb-2 bg-violet-100 text-violet-800">
-                          {product.category?.name || 'Unknown'}
-                        </Badge>
-                        <h4 className="font-semibold mb-2 text-slate-800 group-hover:text-violet-600 transition-colors duration-300">
-                          {product.name}
-                        </h4>
-                        <div className="flex items-center mb-2">
-                          <div className="flex items-center">
-                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm text-slate-600 ml-1">{product.rating || 4.5}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-lg font-bold text-slate-800">RWF {product.price.toLocaleString()}</span>
-                            {product.originalPrice && (
-                              <span className="text-sm text-slate-500 line-through ml-2">
-                                RWF {product.originalPrice.toLocaleString()}
-                              </span>
-                            )}
-                          </div>
-                          <Button 
-                            size="sm" 
-                            className="bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 transform hover:scale-105 transition-all duration-300"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleAddToCart(product);
-                            }}
-                            disabled={product.countInStock === 0}
-                          >
-                            {product.countInStock === 0 ? 'Out of Stock' : 'Add to Cart'}
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-              
-              {/* Show "View More" button if there are more than 8 featured products */}
-              {featuredProducts.length > 8 && (
-                <div className="text-center mt-8">
-                  <Button 
-                    onClick={handleShopNowClick}
-                    className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-8 py-3 font-semibold transform hover:scale-105 transition-all duration-300"
-                  >
-                    View All Featured Products ({featuredProducts.length})
-                  </Button>
-                </div>
-              )}
+                    )}
+                  </>
+                );
+              })()}
             </>
           ) : (
             <div className="col-span-full text-center py-12">
