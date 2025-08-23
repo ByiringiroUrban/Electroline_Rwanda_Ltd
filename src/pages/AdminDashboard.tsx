@@ -310,6 +310,16 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleUpdateOrderStatus = async (orderId: string, status: string) => {
+    try {
+      await ordersAPI.updateStatus(orderId, status);
+      toast.success(`Order ${status.toLowerCase()} successfully!`);
+      fetchData(); // Refresh the data
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update order status');
+    }
+  };
+
   if (!user?.isAdmin) {
     return null;
   }
@@ -839,30 +849,77 @@ const AdminDashboard = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Order ID</TableHead>
+                      <TableHead>Customer</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead>Items</TableHead>
                       <TableHead>Total</TableHead>
-                      <TableHead>Payment</TableHead>
+                      <TableHead>Payment Method</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {orders.map((order) => (
                       <TableRow key={order._id}>
                         <TableCell>#{order._id.slice(-8)}</TableCell>
+                        <TableCell>{order.user?.name || 'N/A'}</TableCell>
                         <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
                         <TableCell>{order.orderItems.length}</TableCell>
                         <TableCell>RWF {order.totalPrice.toLocaleString()}</TableCell>
-                        <TableCell>{order.paymentMethod}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{order.paymentMethod}</Badge>
+                        </TableCell>
                         <TableCell>
                           <Badge className={
                             order.status === 'Delivered' ? 'bg-green-500' :
-                            order.status === 'Shipped' ? 'bg-blue-500' :
+                            order.status === 'Approved' ? 'bg-blue-500' :
+                            order.status === 'Shipped' ? 'bg-indigo-500' :
                             order.status === 'Processing' ? 'bg-yellow-500' :
+                            order.status === 'Rejected' ? 'bg-red-500' :
                             'bg-gray-500'
                           }>
                             {order.status}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            {order.status === 'Processing' && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleUpdateOrderStatus(order._id, 'Approved')}
+                                  className="bg-green-600 hover:bg-green-700"
+                                >
+                                  Approve
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleUpdateOrderStatus(order._id, 'Rejected')}
+                                >
+                                  Reject
+                                </Button>
+                              </>
+                            )}
+                            {order.status === 'Approved' && (
+                              <Button
+                                size="sm"
+                                onClick={() => handleUpdateOrderStatus(order._id, 'Shipped')}
+                                className="bg-blue-600 hover:bg-blue-700"
+                              >
+                                Mark Shipped
+                              </Button>
+                            )}
+                            {order.status === 'Shipped' && (
+                              <Button
+                                size="sm"
+                                onClick={() => handleUpdateOrderStatus(order._id, 'Delivered')}
+                                className="bg-green-600 hover:bg-green-700"
+                              >
+                                Mark Delivered
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

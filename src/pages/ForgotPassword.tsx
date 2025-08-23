@@ -20,10 +20,23 @@ const ForgotPassword = () => {
 
     setLoading(true);
     try {
-      // Simulate password reset email
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success("Password reset email sent! Check your inbox.");
-      setEmail("");
+      // Call forgot password API
+      const response = await fetch('https://rwandastyle.onrender.com/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        toast.success("Password reset email sent! Check your inbox.");
+        setEmail("");
+      } else {
+        toast.error(data.message || "Failed to send reset email");
+      }
     } catch (error) {
       toast.error("Failed to send reset email. Please try again.");
     } finally {

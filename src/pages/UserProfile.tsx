@@ -51,7 +51,11 @@ const UserProfile = () => {
         ]);
 
         if (favoritesResponse.success) {
-          setFavorites(favoritesResponse.data);
+          // Handle both array of products and array of IDs
+          const favoritesData = Array.isArray(favoritesResponse.data) 
+            ? favoritesResponse.data 
+            : favoritesResponse.data.favorites || [];
+          setFavorites(favoritesData);
         }
         
         if (ordersResponse.success) {
@@ -207,23 +211,35 @@ const UserProfile = () => {
                   <div className="space-y-4">
                     {orders.map((order) => (
                       <Card key={order._id}>
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-start mb-3">
-                            <div>
-                              <p className="font-medium">Order #{order._id.slice(-8)}</p>
-                              <p className="text-sm text-gray-500">
-                                {new Date(order.createdAt).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <Badge className={
-                              order.status === 'Delivered' ? 'bg-green-500' :
-                              order.status === 'Shipped' ? 'bg-blue-500' :
-                              order.status === 'Processing' ? 'bg-yellow-500' :
-                              'bg-gray-500'
-                            }>
-                              {order.status}
-                            </Badge>
-                          </div>
+                         <CardContent className="p-4">
+                           <div className="flex justify-between items-start mb-3">
+                             <div>
+                               <p className="font-medium">Order #{order._id.slice(-8)}</p>
+                               <p className="text-sm text-gray-500">
+                                 {new Date(order.createdAt).toLocaleDateString()}
+                               </p>
+                             </div>
+                             <Badge className={
+                               order.status === 'Delivered' ? 'bg-green-500' :
+                               order.status === 'Approved' ? 'bg-blue-500' :
+                               order.status === 'Shipped' ? 'bg-indigo-500' :
+                               order.status === 'Processing' ? 'bg-yellow-500' :
+                               order.status === 'Rejected' ? 'bg-red-500' :
+                               'bg-gray-500'
+                             }>
+                               {order.status}
+                             </Badge>
+                           </div>
+                           {order.status === 'Rejected' && (
+                             <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                               <strong>Order Rejected:</strong> Please contact support for assistance.
+                             </div>
+                           )}
+                           {order.status === 'Approved' && (
+                             <div className="mb-3 p-2 bg-green-50 border border-green-200 rounded text-green-700 text-sm">
+                               <strong>Order Approved:</strong> Your order will be processed and shipped soon.
+                             </div>
+                           )}
                           <div className="space-y-2">
                             <p className="text-sm">
                               <span className="font-medium">Items:</span> {order.orderItems.length}

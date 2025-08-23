@@ -16,11 +16,13 @@ interface CartItem {
 
 interface CartContextType {
   cartItems: CartItem[];
+  cart: CartItem[]; // Add cart alias for compatibility
   cartCount: number;
   addToCart: (productId: string, quantity?: number) => Promise<void>;
   updateCartItem: (productId: string, quantity: number) => Promise<void>;
   removeFromCart: (productId: string) => Promise<void>;
   refreshCart: () => Promise<void>;
+  clearCart: () => Promise<void>; // Add clearCart method
   getTotalPrice: () => number;
 }
 
@@ -112,6 +114,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }, 0);
   };
 
+  const clearCart = async () => {
+    setCartItems([]);
+    // Note: You might want to add API call to clear cart on server if needed
+  };
+
   useEffect(() => {
     if (user) {
       refreshCart();
@@ -121,11 +128,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   return (
     <CartContext.Provider value={{
       cartItems,
+      cart: cartItems, // Add cart alias for compatibility
       cartCount: cartItems.length,
       addToCart,
       updateCartItem,
       removeFromCart,
       refreshCart,
+      clearCart,
       getTotalPrice
     }}>
       {children}
