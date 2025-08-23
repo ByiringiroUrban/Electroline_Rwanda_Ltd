@@ -60,7 +60,7 @@ const userSchema = new mongoose.Schema({
     },
     type: {
       type: String,
-      enum: ['info', 'success', 'warning', 'error'],
+      enum: ['info', 'success', 'warning', 'error', 'order'],
       default: 'info'
     },
     read: {
@@ -71,7 +71,13 @@ const userSchema = new mongoose.Schema({
       type: Date,
       default: Date.now
     }
-  }]
+  }],
+  resetPasswordToken: {
+    type: String
+  },
+  resetPasswordExpires: {
+    type: Date
+  }
 }, {
   timestamps: true
 });

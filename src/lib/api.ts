@@ -58,6 +58,20 @@ export const authAPI = {
       body: JSON.stringify(credentials),
     });
   },
+
+  forgotPassword: async (email: string) => {
+    return apiRequest('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  resetPassword: async (data: { email: string; resetToken: string; newPassword: string }) => {
+    return apiRequest('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
 };
 
 // Products API
@@ -206,6 +220,12 @@ export const ordersAPI = {
   
   getMyOrders: async () => {
     return apiRequest('/orders/myorders', {
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+    });
+  },
+
+  getAll: async () => {
+    return apiRequest('/orders/all', {
       headers: { Authorization: `Bearer ${getAuthToken()}` },
     });
   },
