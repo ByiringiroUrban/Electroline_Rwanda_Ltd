@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Heart, ShoppingCart, Package, User } from 'lucide-react';
+import { Heart, ShoppingCart, Package, User, Bell } from 'lucide-react';
 import HeaderWithFeatures from '@/components/HeaderWithFeatures';
 import { favoritesAPI, ordersAPI } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -104,41 +103,81 @@ const UserProfile = () => {
         <h1 className="text-3xl font-bold text-gray-900 mb-8">My Profile</h1>
         
         <Tabs value={activeTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="profile" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Profile
-            </TabsTrigger>
-            <TabsTrigger value="favorites" className="flex items-center gap-2">
-              <Heart className="h-4 w-4" />
-              Favorites ({favorites.length})
-            </TabsTrigger>
-            <TabsTrigger value="orders" className="flex items-center gap-2">
-              <Package className="h-4 w-4" />
-              Orders ({orders.length})
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="favorites">Favorites</TabsTrigger>
+            <TabsTrigger value="orders">Orders</TabsTrigger>
           </TabsList>
           
           <TabsContent value="profile">
             <Card>
               <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Profile Information
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Name</label>
-                  <p className="text-lg">{user.name}</p>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">Name</label>
+                    <p className="text-gray-600">{user.name}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Email</label>
+                    <p className="text-gray-600">{user.email}</p>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Email</label>
-                  <p className="text-lg">{user.email}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Account Type</label>
-                  <Badge className={user.isAdmin ? 'bg-purple-500' : 'bg-blue-500'}>
-                    {user.isAdmin ? 'Admin' : 'Customer'}
-                  </Badge>
-                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bell className="h-5 w-5" />
+                  Notifications
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <p className="text-center py-8">Loading notifications...</p>
+                ) : (user as any).notifications && (user as any).notifications.length > 0 ? (
+                  <div className="space-y-3">
+                    {(user as any).notifications
+                      .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                      .map((notification: any, index: number) => (
+                        <div key={index} className={`p-4 rounded-lg border ${
+                          notification.type === 'success' ? 'bg-green-50 border-green-200' :
+                          notification.type === 'error' ? 'bg-red-50 border-red-200' :
+                          notification.type === 'warning' ? 'bg-yellow-50 border-yellow-200' :
+                          'bg-blue-50 border-blue-200'
+                        }`}>
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="font-medium text-gray-900">{notification.title}</h4>
+                              <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
+                              <p className="text-xs text-gray-400 mt-2">
+                                {new Date(notification.createdAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <Badge className={
+                              notification.type === 'success' ? 'bg-green-100 text-green-800' :
+                              notification.type === 'error' ? 'bg-red-100 text-red-800' :
+                              notification.type === 'warning' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-blue-100 text-blue-800'
+                            }>
+                              {notification.type}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <p className="text-center text-gray-500 py-8">No notifications yet</p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -146,7 +185,10 @@ const UserProfile = () => {
           <TabsContent value="favorites">
             <Card>
               <CardHeader>
-                <CardTitle>My Favorites</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Heart className="h-5 w-5" />
+                  My Favorites ({favorites.length})
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {loading ? (
@@ -154,20 +196,17 @@ const UserProfile = () => {
                 ) : favorites.length === 0 ? (
                   <p className="text-center text-gray-500 py-8">No favorites yet</p>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {favorites.map((product) => (
                       <Card key={product._id}>
                         <CardContent className="p-4">
                           <img
                             src={product.image}
                             alt={product.name}
-                            className="w-full h-40 object-cover rounded mb-3"
+                            className="w-full h-48 object-cover rounded-md mb-3"
                           />
-                          <Badge variant="secondary" className="mb-2">
-                            {product.category}
-                          </Badge>
-                          <h4 className="font-medium mb-2">{product.name}</h4>
-                          <p className="text-lg font-bold mb-3">
+                          <h3 className="font-medium text-sm mb-2">{product.name}</h3>
+                          <p className="text-lg font-bold text-violet-600 mb-3">
                             RWF {product.price.toLocaleString()}
                           </p>
                           <div className="flex gap-2">
@@ -200,7 +239,10 @@ const UserProfile = () => {
           <TabsContent value="orders">
             <Card>
               <CardHeader>
-                <CardTitle>Order History</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Order History
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {loading ? (

@@ -1,4 +1,3 @@
-
 const API_BASE_URL = 'https://rwandastyle.onrender.com/api';
 
 // Get auth token from localStorage
@@ -148,6 +147,13 @@ export const cartAPI = {
   
   remove: async (productId: string) => {
     return apiRequest(`/cart/${productId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+    });
+  },
+
+  clear: async () => {
+    return apiRequest('/cart/clear', {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${getAuthToken()}` },
     });
@@ -355,6 +361,7 @@ export const categoriesAPI = {
     }
   }
 };
+
 export const userNotificationsAPI = {
   get: async () => {
     return apiRequest('/user-notifications', {

@@ -92,3 +92,19 @@ export const removeFromCart = async (req, res) => {
     sendResponse(res, 500, false, error.message);
   }
 };
+
+export const clearCart = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const user = await User.findById(userId);
+    user.cart = [];
+    
+    await user.save();
+
+    sendResponse(res, 200, true, []);
+  } catch (error) {
+    console.error('Clear cart error:', error);
+    sendResponse(res, 500, false, error.message);
+  }
+};

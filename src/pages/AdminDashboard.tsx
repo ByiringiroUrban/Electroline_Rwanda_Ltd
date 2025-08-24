@@ -117,7 +117,7 @@ const AdminDashboard = () => {
         categoriesAPI.getAll(true), // Include inactive categories for admin
         notificationsAPI.getAll(),
         newsletterAPI.getSubscribers(),
-        ordersAPI.getMyOrders()
+        ordersAPI.getAll() // Admin should see all orders
       ]);
 
       console.log('API Responses:', { productsRes, categoriesRes, notificationsRes, subscribersRes, ordersRes });
