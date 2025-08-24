@@ -883,7 +883,7 @@ const AdminDashboard = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            {order.status === 'Processing' && (
+                            {(order.status === 'Pending' || order.status === 'Processing') && (
                               <>
                                 <Button
                                   size="sm"

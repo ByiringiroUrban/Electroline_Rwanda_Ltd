@@ -10,7 +10,7 @@ import { ordersAPI } from '@/lib/api';
 import { toast } from 'sonner';
 
 const CartDrawer = () => {
-  const { cartItems, cartCount, updateCartItem, removeFromCart, getTotalPrice } = useCart();
+  const { cartItems, cartCount, updateCartItem, removeFromCart, getTotalPrice, clearCart } = useCart();
   const { user } = useAuth();
   const [showCheckout, setShowCheckout] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('');
@@ -60,7 +60,8 @@ const CartDrawer = () => {
       if (response.success) {
         toast.success('Order placed successfully!');
         setShowCheckout(false);
-        window.location.reload(); // Refresh to clear cart
+        // Clear cart using context method instead of page reload
+        await clearCart();
       }
     } catch (error: any) {
       toast.error(error.message || 'Failed to place order');

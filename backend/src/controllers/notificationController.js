@@ -6,6 +6,9 @@ export const createNotification = async (req, res) => {
   try {
     const { title, message, type } = req.body;
     
+    // Import User model
+    const User = (await import('../models/User.js')).default;
+    
     const notification = new Notification({
       title,
       message,
@@ -14,6 +17,23 @@ export const createNotification = async (req, res) => {
     });
 
     const savedNotification = await notification.save();
+    
+    // Add notification to all users
+    await User.updateMany(
+      {},
+      {
+        $push: {
+          notifications: {
+            title,
+            message,
+            type: type || 'info',
+            read: false,
+            createdAt: new Date()
+          }
+        }
+      }
+    );
+    
     sendResponse(res, 201, true, savedNotification);
   } catch (error) {
     console.error('Create notification error:', error);
