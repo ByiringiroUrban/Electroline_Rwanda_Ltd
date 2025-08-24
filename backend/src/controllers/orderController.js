@@ -165,9 +165,15 @@ export const updateOrderStatus = async (req, res) => {
     } else {
       order.status = status;
       
-      // Send notification to user for order status changes
-      if (user) {
-        if (status === 'Approved') {
+      // Handle admin approval/rejection for orders
+      if (status === 'Approved') {
+        // For approval, set status to Processing and update admin approval
+        order.status = 'Processing';
+        order.adminApprovalStatus = 'approved';
+        order.adminApprovedBy = req.user._id;
+        order.adminApprovedAt = Date.now();
+        
+        if (user) {
           user.notifications.push({
             title: 'Order Approved',
             message: `Your order #${order._id.toString().slice(-8)} has been approved and will be processed soon.`,
@@ -175,14 +181,24 @@ export const updateOrderStatus = async (req, res) => {
           });
           await user.save();
           
-          // Send email notification
           await sendOrderNotificationEmail(
             user.email, 
             user.name, 
             order._id.toString(), 
             'approved'
           );
-        } else if (status === 'Rejected') {
+        }
+      } else if (status === 'Rejected') {
+        // For rejection, set status to Cancelled and update admin approval
+        order.status = 'Cancelled';
+        order.adminApprovalStatus = 'rejected';
+        order.adminApprovedBy = req.user._id;
+        order.adminApprovedAt = Date.now();
+        if (adminComments) {
+          order.adminComments = adminComments;
+        }
+        
+        if (user) {
           user.notifications.push({
             title: 'Order Rejected',
             message: `Your order #${order._id.toString().slice(-8)} has been rejected. Please contact support for more information.`,
@@ -190,14 +206,18 @@ export const updateOrderStatus = async (req, res) => {
           });
           await user.save();
           
-          // Send email notification
           await sendOrderNotificationEmail(
             user.email, 
             user.name, 
             order._id.toString(), 
             'rejected'
           );
-        } else if (status === 'Shipped') {
+        }
+      }
+      
+      // Send notification to user for other order status changes
+      if (user && status !== 'Approved' && status !== 'Rejected') {
+        if (status === 'Shipped') {
           user.notifications.push({
             title: 'Order Shipped',
             message: `Your order #${order._id.toString().slice(-8)} has been shipped and is on its way to you.`,

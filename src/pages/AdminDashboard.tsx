@@ -870,12 +870,12 @@ const AdminDashboard = () => {
                           <Badge variant="secondary">{order.paymentMethod}</Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge className={
+                           <Badge className={
                             order.status === 'Delivered' ? 'bg-green-500' :
-                            order.status === 'Approved' ? 'bg-blue-500' :
+                            order.status === 'Processing' ? 'bg-blue-500' :
                             order.status === 'Shipped' ? 'bg-indigo-500' :
-                            order.status === 'Processing' ? 'bg-yellow-500' :
-                            order.status === 'Rejected' ? 'bg-red-500' :
+                            order.status === 'Pending' ? 'bg-yellow-500' :
+                            order.status === 'Cancelled' ? 'bg-red-500' :
                             'bg-gray-500'
                           }>
                             {order.status}
@@ -901,7 +901,7 @@ const AdminDashboard = () => {
                                 </Button>
                               </>
                             )}
-                            {order.status === 'Approved' && (
+                            {order.status === 'Processing' && (
                               <Button
                                 size="sm"
                                 onClick={() => handleUpdateOrderStatus(order._id, 'Shipped')}

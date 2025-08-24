@@ -261,27 +261,27 @@ const UserProfile = () => {
                                  {new Date(order.createdAt).toLocaleDateString()}
                                </p>
                              </div>
-                             <Badge className={
-                               order.status === 'Delivered' ? 'bg-green-500' :
-                               order.status === 'Approved' ? 'bg-blue-500' :
-                               order.status === 'Shipped' ? 'bg-indigo-500' :
-                               order.status === 'Processing' ? 'bg-yellow-500' :
-                               order.status === 'Rejected' ? 'bg-red-500' :
-                               'bg-gray-500'
-                             }>
+                              <Badge className={
+                                order.status === 'Delivered' ? 'bg-green-500' :
+                                order.status === 'Processing' ? 'bg-blue-500' :
+                                order.status === 'Shipped' ? 'bg-indigo-500' :
+                                order.status === 'Pending' ? 'bg-yellow-500' :
+                                order.status === 'Cancelled' ? 'bg-red-500' :
+                                'bg-gray-500'
+                              }>
                                {order.status}
                              </Badge>
                            </div>
-                           {order.status === 'Rejected' && (
+                           {order.status === 'Cancelled' && (
                              <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
-                               <strong>Order Rejected:</strong> Please contact support for assistance.
+                               <strong>Order Cancelled:</strong> Please contact support for assistance.
                              </div>
-                           )}
-                           {order.status === 'Approved' && (
-                             <div className="mb-3 p-2 bg-green-50 border border-green-200 rounded text-green-700 text-sm">
-                               <strong>Order Approved:</strong> Your order will be processed and shipped soon.
-                             </div>
-                           )}
+                            )}
+                            {(order as any).adminApprovalStatus === 'approved' && (
+                              <div className="mb-3 p-2 bg-green-50 border border-green-200 rounded text-green-700 text-sm">
+                                <strong>Order Approved:</strong> Your order will be processed and shipped soon.
+                              </div>
+                            )}
                           <div className="space-y-2">
                             <p className="text-sm">
                               <span className="font-medium">Items:</span> {order.orderItems.length}
