@@ -16,11 +16,13 @@ interface CartItem {
 
 interface CartContextType {
   cartItems: CartItem[];
+  cart: CartItem[]; // Add cart alias for compatibility
   cartCount: number;
   addToCart: (productId: string, quantity?: number) => Promise<void>;
   updateCartItem: (productId: string, quantity: number) => Promise<void>;
   removeFromCart: (productId: string) => Promise<void>;
   refreshCart: () => Promise<void>;
+  clearCart: () => Promise<void>; // Add clearCart method
   getTotalPrice: () => number;
 }
 
@@ -112,6 +114,22 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }, 0);
   };
 
+  const clearCart = async () => {
+    setCartItems([]);
+    
+    // Clear cart on server
+    if (user) {
+      try {
+        // Clear each item from the server cart
+        for (const item of cartItems) {
+          await cartAPI.remove(item.product._id);
+        }
+      } catch (error) {
+        console.error('Failed to clear cart on server:', error);
+      }
+    }
+  };
+
   useEffect(() => {
     if (user) {
       refreshCart();
@@ -121,11 +139,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   return (
     <CartContext.Provider value={{
       cartItems,
+      cart: cartItems, // Add cart alias for compatibility
       cartCount: cartItems.length,
       addToCart,
       updateCartItem,
       removeFromCart,
       refreshCart,
+      clearCart,
       getTotalPrice
     }}>
       {children}

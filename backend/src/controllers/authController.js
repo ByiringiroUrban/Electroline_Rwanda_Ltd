@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import sendResponse from '../utils/sendResponse.js';
+import { sendWelcomeEmail, sendForgotPasswordEmail } from '../utils/emailService.js';
 
 export const register = async (req, res) => {
   try {
@@ -26,6 +27,9 @@ export const register = async (req, res) => {
     });
 
     await user.save();
+
+    // Send welcome email
+    await sendWelcomeEmail(user.email, user.name);
 
     // Generate token
     const token = jwt.sign(
@@ -120,6 +124,63 @@ export const login = async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
+    sendResponse(res, 500, false, error.message);
+  }
+};
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return sendResponse(res, 404, false, 'User not found');
+    }
+
+    // Generate 6-digit reset code
+    const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Store reset token in user (you might want to add these fields to User model)
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    await user.save();
+
+    // Send email
+    await sendForgotPasswordEmail(user.email, user.name, resetToken);
+
+    sendResponse(res, 200, true, { message: 'Password reset code sent to your email' });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    sendResponse(res, 500, false, error.message);
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, resetToken, newPassword } = req.body;
+
+    const user = await User.findOne({
+      email,
+      resetPasswordToken: resetToken,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return sendResponse(res, 400, false, 'Invalid or expired reset token');
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    
+    // Update user password and clear reset token
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    sendResponse(res, 200, true, { message: 'Password reset successfully' });
+  } catch (error) {
+    console.error('Reset password error:', error);
     sendResponse(res, 500, false, error.message);
   }
 };

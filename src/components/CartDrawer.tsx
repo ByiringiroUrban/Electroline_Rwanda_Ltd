@@ -169,6 +169,34 @@ const CartDrawer = () => {
                       </select>
                     </div>
                     
+                    {paymentMethod === 'MTN Mobile Money' && (
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                        <div className="flex items-center mb-3">
+                          <div className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">MTN</div>
+                          <h4 className="ml-2 font-semibold text-sm">MTN Mobile Money</h4>
+                        </div>
+                        <div className="space-y-1 text-xs">
+                          <p>Send payment to: <strong>0788854234</strong></p>
+                          <p>Amount: <strong className="text-green-600">RWF {getTotalPrice().toLocaleString()}</strong></p>
+                          <p className="text-orange-600">You'll receive confirmation after placing order.</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {paymentMethod === 'Airtel Money' && (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div className="flex items-center mb-3">
+                          <div className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">Airtel</div>
+                          <h4 className="ml-2 font-semibold text-sm">Airtel Money</h4>
+                        </div>
+                        <div className="space-y-1 text-xs">
+                          <p>Send payment to: <strong>0788854234</strong></p>
+                          <p>Amount: <strong className="text-green-600">RWF {getTotalPrice().toLocaleString()}</strong></p>
+                          <p className="text-red-600">You'll receive confirmation after placing order.</p>
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="flex space-x-2">
                       <Button
                         variant="outline"

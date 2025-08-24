@@ -1,6 +1,8 @@
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
+import User from '../models/User.js';
 import sendResponse from '../utils/sendResponse.js';
+import { sendOrderNotificationEmail } from '../utils/emailService.js';
 
 export const createOrder = async (req, res) => {
   try {
@@ -173,7 +175,7 @@ export const updateOrderStatus = async (req, res) => {
 export const approveOrderReception = async (req, res) => {
   try {
     const { approved, adminComments } = req.body;
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate('user', 'name email');
 
     if (!order) {
       return sendResponse(res, 404, false, 'Order not found');
@@ -187,12 +189,49 @@ export const approveOrderReception = async (req, res) => {
       return sendResponse(res, 400, false, 'This order does not require admin approval');
     }
 
+    const user = await User.findById(order.user._id || order.user);
+    
     if (approved) {
       order.status = 'Received';
       order.adminApprovalStatus = 'approved';
+      
+      // Add notification to user
+      if (user) {
+        user.notifications.push({
+          title: 'Order Approved',
+          message: `Your order #${order._id.toString().slice(-8)} has been approved and completed successfully.`,
+          type: 'success'
+        });
+        await user.save();
+        
+        // Send email notification
+        await sendOrderNotificationEmail(
+          user.email, 
+          user.name, 
+          order._id.toString(), 
+          'approved'
+        );
+      }
     } else {
       order.adminApprovalStatus = 'rejected';
-      // Keep status as "Delivered" but mark as rejected
+      
+      // Add notification to user
+      if (user) {
+        user.notifications.push({
+          title: 'Order Rejected',
+          message: `Your order #${order._id.toString().slice(-8)} has been rejected. ${adminComments || 'Please contact support for more information.'}`,
+          type: 'error'
+        });
+        await user.save();
+        
+        // Send email notification
+        await sendOrderNotificationEmail(
+          user.email, 
+          user.name, 
+          order._id.toString(), 
+          'rejected'
+        );
+      }
     }
 
     order.adminApprovedBy = req.user._id;
