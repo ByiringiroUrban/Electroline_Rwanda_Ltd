@@ -75,12 +75,16 @@ const Checkout = () => {
       
       if (response.success) {
         // Send notification to user
-        await userNotificationsAPI.add(
-          user.id,
-          'Order Placed Successfully',
-          `Your order #${response.data._id.slice(-8)} has been placed and is awaiting processing. Total: RWF ${total.toLocaleString()}`,
-          'order'
-        );
+        try {
+          await userNotificationsAPI.add(
+            user.id,
+            'Order Placed Successfully',
+            `Your order #${response.data._id.slice(-8)} has been placed and is awaiting processing. Total: RWF ${total.toLocaleString()}`,
+            'order'
+          );
+        } catch (notifError) {
+          console.error('Failed to send notification:', notifError);
+        }
         
         clearCart();
         toast.success('Order placed successfully!');

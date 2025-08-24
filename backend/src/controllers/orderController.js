@@ -139,6 +139,9 @@ export const updateOrderStatus = async (req, res) => {
       return sendResponse(res, 404, false, 'Order not found');
     }
 
+    // Get user for notifications
+    const user = await User.findById(order.user);
+
     // When status is "Delivered", it means product reached client and needs admin approval
     if (status === 'Delivered') {
       order.status = status;
@@ -161,6 +164,71 @@ export const updateOrderStatus = async (req, res) => {
       }
     } else {
       order.status = status;
+      
+      // Send notification to user for order status changes
+      if (user) {
+        if (status === 'Approved') {
+          user.notifications.push({
+            title: 'Order Approved',
+            message: `Your order #${order._id.toString().slice(-8)} has been approved and will be processed soon.`,
+            type: 'success'
+          });
+          await user.save();
+          
+          // Send email notification
+          await sendOrderNotificationEmail(
+            user.email, 
+            user.name, 
+            order._id.toString(), 
+            'approved'
+          );
+        } else if (status === 'Rejected') {
+          user.notifications.push({
+            title: 'Order Rejected',
+            message: `Your order #${order._id.toString().slice(-8)} has been rejected. Please contact support for more information.`,
+            type: 'error'
+          });
+          await user.save();
+          
+          // Send email notification
+          await sendOrderNotificationEmail(
+            user.email, 
+            user.name, 
+            order._id.toString(), 
+            'rejected'
+          );
+        } else if (status === 'Shipped') {
+          user.notifications.push({
+            title: 'Order Shipped',
+            message: `Your order #${order._id.toString().slice(-8)} has been shipped and is on its way to you.`,
+            type: 'info'
+          });
+          await user.save();
+          
+          // Send email notification
+          await sendOrderNotificationEmail(
+            user.email, 
+            user.name, 
+            order._id.toString(), 
+            'shipped'
+          );
+        } else if (status === 'Delivered') {
+          user.notifications.push({
+            title: 'Order Delivered',
+            message: `Your order #${order._id.toString().slice(-8)} has been delivered successfully.`,
+            type: 'success'
+          });
+          await user.save();
+          
+          // Send email notification
+          await sendOrderNotificationEmail(
+            user.email, 
+            user.name, 
+            order._id.toString(), 
+            'delivered'
+          );
+        }
+      }
     }
 
     const updatedOrder = await order.save();

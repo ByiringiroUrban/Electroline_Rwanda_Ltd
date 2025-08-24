@@ -115,17 +115,17 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const clearCart = async () => {
+    // Clear cart immediately in UI
     setCartItems([]);
     
-    // Clear cart on server
+    // Clear cart on server using the new clear endpoint
     if (user) {
       try {
-        // Clear each item from the server cart
-        for (const item of cartItems) {
-          await cartAPI.remove(item.product._id);
-        }
+        await cartAPI.clear();
       } catch (error) {
         console.error('Failed to clear cart on server:', error);
+        // If server clearing fails, refresh to get server state
+        refreshCart();
       }
     }
   };
