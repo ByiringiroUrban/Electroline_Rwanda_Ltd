@@ -12,7 +12,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [formData, setFormData] = useState({
-    email: "",
+    emailOrPhone: "",
     password: "",
   });
   const [loading, setLoading] = useState(false);
@@ -27,7 +27,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await login(formData.email, formData.password);
+      await login(formData.emailOrPhone, formData.password);
       toast.success("Login successful!");
       navigate("/");
     } catch (error: any) {
@@ -66,10 +66,10 @@ const Login = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Input
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  value={formData.email}
+                  type="text"
+                  name="emailOrPhone"
+                  placeholder="Email or Phone Number"
+                  value={formData.emailOrPhone}
                   onChange={handleChange}
                   className="h-12"
                   required

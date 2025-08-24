@@ -12,8 +12,10 @@ interface User {
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  login: (emailOrPhone: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string, phone?: string) => Promise<{ requiresVerification?: boolean; email?: string }>;
+  verifyEmail: (email: string, verificationToken: string) => Promise<void>;
+  resendVerification: (email: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
 }
@@ -57,12 +59,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (emailOrPhone: string, password: string) => {
     try {
       setLoading(true);
-      console.log('Attempting login for:', email);
+      console.log('Attempting login for:', emailOrPhone);
       
-      const response = await authAPI.login({ email, password });
+      const response = await authAPI.login({ emailOrPhone, password });
       console.log('Login response:', response);
       
       if (response.success && response.data) {
@@ -90,18 +92,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (name: string, email: string, password: string) => {
+  const register = async (name: string, email: string, password: string, phone?: string) => {
     try {
       setLoading(true);
       console.log('Attempting registration for:', email);
       
-      const response = await authAPI.register({ name, email, password });
+      const response = await authAPI.register({ name, email, password, phone });
       console.log('Register response:', response);
+      
+      if (response.success) {
+        if (response.data?.requiresVerification) {
+          // Registration successful but requires email verification
+          return { requiresVerification: true, email: response.data.email };
+        } else if (response.data?.token && response.data?.user) {
+          // Registration successful with immediate login (shouldn't happen with email verification)
+          const { token: authToken, user: userData } = response.data;
+          
+          setToken(authToken);
+          setUser(userData);
+          localStorage.setItem('token', authToken);
+          localStorage.setItem('user', JSON.stringify(userData));
+          
+          return {};
+        }
+      } else {
+        throw new Error(response.message || 'Registration failed');
+      }
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      throw new Error(error.message || 'Registration failed');
+    } finally {
+      setLoading(false);
+    }
+    
+    return {};
+  };
+
+  const verifyEmail = async (email: string, verificationToken: string) => {
+    try {
+      setLoading(true);
+      console.log('Attempting email verification for:', email);
+      
+      const response = await authAPI.verifyEmail({ email, verificationToken });
+      console.log('Verification response:', response);
       
       if (response.success && response.data) {
         const { token: authToken, user: userData } = response.data;
         
-        console.log('Setting auth data after registration:', { token: !!authToken, user: userData });
+        console.log('Setting auth data after verification:', { token: !!authToken, user: userData });
         
         // Update state first
         setToken(authToken);
@@ -111,13 +149,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem('token', authToken);
         localStorage.setItem('user', JSON.stringify(userData));
         
-        console.log('Registration successful, user set:', userData);
+        console.log('Email verification successful, user set:', userData);
       } else {
-        throw new Error(response.message || 'Registration failed');
+        throw new Error(response.message || 'Email verification failed');
       }
     } catch (error: any) {
-      console.error('Registration error:', error);
-      throw new Error(error.message || 'Registration failed');
+      console.error('Email verification error:', error);
+      throw new Error(error.message || 'Email verification failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resendVerification = async (email: string) => {
+    try {
+      setLoading(true);
+      await authAPI.resendVerification(email);
+    } catch (error: any) {
+      console.error('Resend verification error:', error);
+      throw new Error(error.message || 'Failed to resend verification');
     } finally {
       setLoading(false);
     }
@@ -136,6 +186,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     token,
     login,
     register,
+    verifyEmail,
+    resendVerification,
     logout,
     loading,
   };

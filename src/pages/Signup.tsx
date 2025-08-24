@@ -46,9 +46,15 @@ const Signup = () => {
 
     try {
       const fullName = `${formData.firstName} ${formData.lastName}`;
-      await register(fullName, formData.email, formData.password);
-      toast.success("Account created successfully!");
-      navigate("/");
+      const result = await register(fullName, formData.email, formData.password, formData.phone);
+      
+      if (result.requiresVerification) {
+        toast.success("Registration successful! Please check your email to verify your account.");
+        navigate(`/verify-email?email=${encodeURIComponent(result.email || formData.email)}`);
+      } else {
+        toast.success("Account created successfully!");
+        navigate("/");
+      }
     } catch (error: any) {
       toast.error(error.message || "Registration failed. Please try again.");
     } finally {

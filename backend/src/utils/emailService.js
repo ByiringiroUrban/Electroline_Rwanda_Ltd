@@ -69,6 +69,48 @@ export const sendForgotPasswordEmail = async (userEmail, userName, resetToken) =
   return await sendEmail(userEmail, subject, htmlContent);
 };
 
+export const sendVerificationEmail = async (userEmail, userName, verificationToken) => {
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #ff6b35; margin: 0;">Electroline Rwanda Ltd.</h1>
+        <p style="color: #666; margin: 5px 0;">Electronics & Technology Solutions</p>
+      </div>
+      
+      <div style="background: linear-gradient(135deg, #ff6b35, #f7931e); padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 30px;">
+        <h2 style="color: white; margin: 0;">Verify Your Email Address</h2>
+      </div>
+      
+      <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+        Hello <strong>${userName}</strong>,
+      </p>
+      
+      <p style="font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+        Thank you for registering with Electroline Rwanda Ltd. To complete your account setup, please verify your email address using the verification code below:
+      </p>
+      
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; margin: 30px 0;">
+        <p style="margin: 0 0 10px 0; font-size: 14px; color: #666;">Your Verification Code:</p>
+        <div style="font-size: 32px; font-weight: bold; color: #ff6b35; letter-spacing: 5px; font-family: 'Courier New', monospace;">
+          ${verificationToken}
+        </div>
+        <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">This code expires in 1 hour</p>
+      </div>
+      
+      <p style="font-size: 14px; line-height: 1.6; color: #666; margin-top: 30px;">
+        If you didn't create an account with us, please ignore this email.
+      </p>
+      
+      <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 30px; text-align: center; color: #999; font-size: 12px;">
+        <p>© 2024 Electroline Rwanda Ltd. All rights reserved.</p>
+        <p>Your trusted partner in electronics and technology solutions.</p>
+      </div>
+    </div>
+  `;
+
+  return await sendEmail(userEmail, 'Verify Your Email - Electroline Rwanda Ltd.', htmlContent);
+};
+
 export const sendWelcomeEmail = async (userEmail, userName) => {
   const subject = 'Welcome to Eletroline Rwanda!';
   const htmlContent = `

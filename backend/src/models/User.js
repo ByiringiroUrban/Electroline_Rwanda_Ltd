@@ -15,6 +15,16 @@ const userSchema = new mongoose.Schema({
     trim: true,
     lowercase: true
   },
+  emailVerified: {
+    type: Boolean,
+    default: false
+  },
+  emailVerificationToken: {
+    type: String
+  },
+  emailVerificationExpires: {
+    type: Date
+  },
   password: {
     type: String,
     required: [true, 'Password is required'],
@@ -22,7 +32,9 @@ const userSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    trim: true
+    trim: true,
+    unique: true,
+    sparse: true  // Allow null values but ensure uniqueness when present
   },
   profilePicture: {
     type: String,

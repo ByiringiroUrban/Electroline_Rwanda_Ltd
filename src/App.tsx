@@ -21,6 +21,8 @@ import SizeGuide from "./pages/SizeGuide";
 import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
 
+import EmailVerification from "./pages/EmailVerification";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -35,6 +37,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/verify-email" element={<EmailVerification />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/products" element={<Products />} />
               <Route path="/admin" element={<AdminDashboard />} />

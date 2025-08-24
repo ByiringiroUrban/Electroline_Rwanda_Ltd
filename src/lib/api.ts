@@ -46,17 +46,31 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
 
 // Auth API
 export const authAPI = {
-  register: async (userData: { name: string; email: string; password: string }) => {
+  register: async (userData: { name: string; email: string; password: string; phone?: string }) => {
     return apiRequest('/auth/register', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
   },
   
-  login: async (credentials: { email: string; password: string }) => {
+  login: async (credentials: { emailOrPhone: string; password: string }) => {
     return apiRequest('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
+    });
+  },
+
+  verifyEmail: async (data: { email: string; verificationToken: string }) => {
+    return apiRequest('/auth/verify-email', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  resendVerification: async (email: string) => {
+    return apiRequest('/auth/resend-verification', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
     });
   },
 
