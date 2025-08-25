@@ -25,15 +25,12 @@ export const register = async (req, res) => {
     // Generate 6-digit verification code
     const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    // Create user (not verified yet)
+    // Create user (not verified yet) - password will be hashed by User model pre-save hook
     const user = new User({
       name,
       email,
       phone,
-      password: hashedPassword,
+      password, // Let the User model handle hashing
       emailVerified: false,
       emailVerificationToken: verificationToken,
       emailVerificationExpires: Date.now() + 3600000, // 1 hour
@@ -139,11 +136,10 @@ export const login = async (req, res) => {
       let adminUser = await User.findOne({ email: 'admin@rwandastyle.com' });
       
       if (!adminUser) {
-        const hashedPassword = await bcrypt.hash('admin123', 12);
         adminUser = new User({
           name: 'Admin User',
           email: 'admin@rwandastyle.com',
-          password: hashedPassword,
+          password: 'admin123', // Let the User model handle hashing
           emailVerified: true,
           isAdmin: true
         });
@@ -257,11 +253,8 @@ export const resetPassword = async (req, res) => {
       return sendResponse(res, 400, false, 'Invalid or expired reset token');
     }
 
-    // Hash new password
-    const hashedPassword = await bcrypt.hash(newPassword, 12);
-    
-    // Update user password and clear reset token
-    user.password = hashedPassword;
+    // Update user password and clear reset token (password will be hashed by pre-save hook)
+    user.password = newPassword; // Let the User model handle hashing
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
     await user.save();
