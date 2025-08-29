@@ -1,10 +1,9 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Ruler } from "lucide-react";
+import { Zap, Plug } from "lucide-react"; // Changed icon imports
 import Header from "@/components/Header";
 
-const SizeGuide = () => {
+const ElectricalSpecs = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       <Header />
@@ -12,10 +11,10 @@ const SizeGuide = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-12 animate-fade-in">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            Size Guide
+            Product Specifications Guide
           </h1>
           <p className="text-slate-600 text-lg">
-            Find your perfect fit
+            Compare technical details and find the right product for your needs
           </p>
         </div>
 
@@ -23,44 +22,44 @@ const SizeGuide = () => {
           <Card className="animate-fade-in">
             <CardHeader>
               <CardTitle className="flex items-center">
-                <Ruler className="mr-2 h-5 w-5 text-violet-600" />
-                Shoe Sizes
+                <Zap className="mr-2 h-5 w-5 text-violet-600" />
+                Power Supplies
               </CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Rwanda Size</TableHead>
-                    <TableHead>US Size</TableHead>
-                    <TableHead>EU Size</TableHead>
-                    <TableHead>Length (cm)</TableHead>
+                    <TableHead>Model</TableHead>
+                    <TableHead>Input Voltage (V)</TableHead>
+                    <TableHead>Output Power (W)</TableHead>
+                    <TableHead>Efficiency (%)</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   <TableRow>
-                    <TableCell>36</TableCell>
-                    <TableCell>6</TableCell>
-                    <TableCell>36</TableCell>
-                    <TableCell>23</TableCell>
+                    <TableCell>PS-100</TableCell>
+                    <TableCell>100-240</TableCell>
+                    <TableCell>500</TableCell>
+                    <TableCell>85</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>37</TableCell>
-                    <TableCell>7</TableCell>
-                    <TableCell>37</TableCell>
-                    <TableCell>24</TableCell>
+                    <TableCell>PS-250</TableCell>
+                    <TableCell>100-240</TableCell>
+                    <TableCell>750</TableCell>
+                    <TableCell>88</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>38</TableCell>
-                    <TableCell>8</TableCell>
-                    <TableCell>38</TableCell>
-                    <TableCell>25</TableCell>
+                    <TableCell>PS-500</TableCell>
+                    <TableCell>100-240</TableCell>
+                    <TableCell>1000</TableCell>
+                    <TableCell>90</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>39</TableCell>
-                    <TableCell>9</TableCell>
-                    <TableCell>39</TableCell>
-                    <TableCell>26</TableCell>
+                    <TableCell>PS-750</TableCell>
+                    <TableCell>100-240</TableCell>
+                    <TableCell>1500</TableCell>
+                    <TableCell>92</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -69,42 +68,45 @@ const SizeGuide = () => {
 
           <Card className="animate-fade-in" style={{ animationDelay: "200ms" }}>
             <CardHeader>
-              <CardTitle>Clothing Sizes</CardTitle>
+              <CardTitle className="flex items-center">
+                <Plug className="mr-2 h-5 w-5 text-violet-600" />
+                Cables & Connectors
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Size</TableHead>
-                    <TableHead>Chest (cm)</TableHead>
-                    <TableHead>Waist (cm)</TableHead>
-                    <TableHead>Hip (cm)</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Length (m)</TableHead>
+                    <TableHead>Connector A</TableHead>
+                    <TableHead>Connector B</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   <TableRow>
-                    <TableCell>S</TableCell>
-                    <TableCell>86-91</TableCell>
-                    <TableCell>71-76</TableCell>
-                    <TableCell>91-96</TableCell>
+                    <TableCell>HDMI 2.1</TableCell>
+                    <TableCell>1.5</TableCell>
+                    <TableCell>Male</TableCell>
+                    <TableCell>Male</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>M</TableCell>
-                    <TableCell>96-101</TableCell>
-                    <TableCell>81-86</TableCell>
-                    <TableCell>101-106</TableCell>
+                    <TableCell>USB-C</TableCell>
+                    <TableCell>1</TableCell>
+                    <TableCell>Male</TableCell>
+                    <TableCell>Male</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>L</TableCell>
-                    <TableCell>106-111</TableCell>
-                    <TableCell>91-96</TableCell>
-                    <TableCell>111-116</TableCell>
+                    <TableCell>Ethernet Cat6</TableCell>
+                    <TableCell>3</TableCell>
+                    <TableCell>RJ45</TableCell>
+                    <TableCell>RJ45</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>XL</TableCell>
-                    <TableCell>116-121</TableCell>
-                    <TableCell>101-106</TableCell>
-                    <TableCell>121-126</TableCell>
+                    <TableCell>Power Cord</TableCell>
+                    <TableCell>2</TableCell>
+                    <TableCell>Type G</TableCell>
+                    <TableCell>IEC C13</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -116,4 +118,4 @@ const SizeGuide = () => {
   );
 };
 
-export default SizeGuide;
+export default ElectricalSpecs;

@@ -80,7 +80,7 @@ const Signup = () => {
                   <Input
                     id="firstName"
                     name="firstName"
-                    placeholder="John"
+                    placeholder="urban"
                     value={formData.firstName}
                     onChange={handleChange}
                     required
@@ -92,7 +92,7 @@ const Signup = () => {
                   <Input
                     id="lastName"
                     name="lastName"
-                    placeholder="Doe"
+                    placeholder="Pac"
                     value={formData.lastName}
                     onChange={handleChange}
                     required
@@ -106,7 +106,7 @@ const Signup = () => {
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="your.email@example.com"
+                  placeholder="urban.pac@example.com"
                   value={formData.email}
                   onChange={handleChange}
                   required
@@ -119,7 +119,7 @@ const Signup = () => {
                   id="phone"
                   name="phone"
                   type="tel"
-                  placeholder="+250 788 123 456"
+                  placeholder="+250 788 854 243"
                   value={formData.phone}
                   onChange={handleChange}
                   required

@@ -608,12 +608,12 @@ const Index = () => {
               <div className="flex flex-wrap gap-2">
                 <Badge className="bg-gradient-to-r from-yellow-500 to-yellow-600">MTN Mobile Money</Badge>
                 <Badge className="bg-gradient-to-r from-red-500 to-red-600">Airtel Money</Badge>
-                <Badge className="bg-gradient-to-r from-blue-500 to-blue-600">Visa/MasterCard</Badge>
+                <Badge className="bg-gradient-to-r from-blue-500 to-blue-600">Cash on delivery</Badge>
               </div>
             </div>
           </div>
           <div className="border-t border-slate-700 mt-8 pt-8 text-center text-slate-300">
-            <p>&copy; 2024 Electroline Rwanda Ltd. All rights reserved.</p>
+            <p>&copy; 2025 Electroline Rwanda Ltd. All rights reserved.</p>
           </div>
         </div>
       </footer>
